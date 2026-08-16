@@ -4,17 +4,33 @@ import SignOutButton from "@/components/admin/SignOutButton";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex-1 flex flex-col">
-      <header className="border-b border-black/10 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <h1 className="text-lg font-semibold">AssessorHub Admin</h1>
-          <nav className="flex items-center gap-4 text-sm">
-            <Link href="/admin" className="text-gray-600 hover:text-gray-900">
+      <header className="bg-[var(--navy-900)] border-b border-[var(--navy-700)] px-6 py-5 flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white font-bold text-sm">
+              AH
+            </div>
+            <h1 className="text-lg font-semibold text-white tracking-tight">
+              AssessorHub Admin
+            </h1>
+          </div>
+          <nav className="flex items-center gap-1 text-sm">
+            <Link
+              href="/admin"
+              className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
               Links
             </Link>
-            <Link href="/admin/import" className="text-gray-600 hover:text-gray-900">
+            <Link
+              href="/admin/import"
+              className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
               Bulk Import
             </Link>
-            <Link href="/" className="text-gray-600 hover:text-gray-900">
+            <Link
+              href="/"
+              className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
               View Dashboard
             </Link>
           </nav>
@@ -22,7 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <SignOutButton />
       </header>
 
-      <main className="flex-1 px-6 py-8">{children}</main>
+      <main className="flex-1 px-6 py-10 max-w-5xl w-full mx-auto">{children}</main>
     </div>
   );
 }

@@ -52,33 +52,33 @@ export default function LinkForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <label className="text-xs text-gray-500">Title</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-medium text-slate-500">Title</label>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Maricopa County Parcel Viewer"
-          className="rounded-md border border-black/10 px-3 py-2 text-sm outline-none focus:border-blue-500"
+          className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="text-xs text-gray-500">URL</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-medium text-slate-500">URL</label>
         <input
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://..."
-          className="rounded-md border border-black/10 px-3 py-2 text-sm outline-none focus:border-blue-500"
+          className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="text-xs text-gray-500">Notes (optional)</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-medium text-slate-500">Notes (optional)</label>
         <input
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Login quirks, tips, etc."
-          className="rounded-md border border-black/10 px-3 py-2 text-sm outline-none focus:border-blue-500"
+          className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
         />
       </div>
 
@@ -88,7 +88,7 @@ export default function LinkForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white font-medium hover:bg-blue-700 disabled:opacity-50"
+          className="rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors disabled:opacity-50"
         >
           {saving ? "Saving..." : submitLabel}
         </button>
@@ -96,7 +96,7 @@ export default function LinkForm({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-md px-4 py-2 text-sm text-gray-600 hover:bg-gray-100"
+            className="rounded-full px-5 py-2.5 text-sm text-slate-500 hover:bg-slate-100 transition-colors"
           >
             Cancel
           </button>

@@ -65,22 +65,34 @@ export default function LinksManager() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Filter by title..."
-          className="w-full max-w-sm rounded-md border border-black/10 px-3 py-2 text-sm outline-none focus:border-blue-500"
-        />
+        <div className="relative w-full max-w-sm">
+          <svg
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <circle cx="11" cy="11" r="7" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filter by title..."
+            className="w-full rounded-full border border-slate-200 bg-white pl-10 pr-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+          />
+        </div>
         <button
           onClick={() => setShowAddForm((v) => !v)}
-          className="shrink-0 rounded-md bg-blue-600 px-4 py-2 text-sm text-white font-medium hover:bg-blue-700"
+          className="shrink-0 rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors"
         >
           {showAddForm ? "Close" : "+ Add Link"}
         </button>
       </div>
 
       {showAddForm && (
-        <div className="rounded-lg border border-black/10 bg-white p-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <LinkForm submitLabel="Add Link" onSubmit={handleAdd} onCancel={() => setShowAddForm(false)} />
         </div>
       )}
@@ -88,16 +100,16 @@ export default function LinksManager() {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {loading ? (
-        <p className="text-sm text-gray-400">Loading...</p>
+        <p className="text-sm text-slate-400">Loading...</p>
       ) : (
-        <div className="rounded-lg border border-black/10 bg-white overflow-hidden">
-          <p className="px-4 py-2 text-xs text-gray-500 border-b border-black/5">
+        <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+          <p className="px-5 py-3 text-xs font-medium text-slate-400 border-b border-slate-100 bg-slate-50/50">
             {filtered.length} link{filtered.length === 1 ? "" : "s"}
           </p>
-          <ul className="divide-y divide-black/5">
+          <ul className="divide-y divide-slate-100">
             {filtered.map((link) =>
               editingId === link.id ? (
-                <li key={link.id} className="p-4 bg-blue-50/50">
+                <li key={link.id} className="p-5 bg-[var(--accent-light)]/40">
                   <LinkForm
                     initial={link}
                     submitLabel="Save"
@@ -108,22 +120,22 @@ export default function LinksManager() {
               ) : (
                 <li
                   key={link.id}
-                  className="flex items-center justify-between gap-4 px-4 py-3"
+                  className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-slate-50/60 transition-colors"
                 >
                   <div className="min-w-0 flex flex-col">
-                    <span className="font-medium text-gray-900 truncate">{link.title}</span>
-                    <span className="text-xs text-gray-500 truncate">{link.url}</span>
+                    <span className="font-medium text-[var(--navy-900)] truncate">{link.title}</span>
+                    <span className="text-xs text-slate-400 truncate">{link.url}</span>
                   </div>
-                  <div className="shrink-0 flex items-center gap-3 text-sm">
+                  <div className="shrink-0 flex items-center gap-2 text-sm">
                     <button
                       onClick={() => setEditingId(link.id)}
-                      className="text-blue-600 hover:underline"
+                      className="rounded-full px-3 py-1.5 text-[var(--accent)] hover:bg-[var(--accent-light)] transition-colors"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(link.id, link.title)}
-                      className="text-red-600 hover:underline"
+                      className="rounded-full px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
                     >
                       Delete
                     </button>
