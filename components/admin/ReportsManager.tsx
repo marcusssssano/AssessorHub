@@ -14,7 +14,7 @@ import {
 import ReportChart from "@/components/ReportChart";
 import EditReportEntryModal from "@/components/admin/EditReportEntryModal";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 5;
 
 export default function ReportsManager() {
   const supabase = useMemo(() => createClient(), []);

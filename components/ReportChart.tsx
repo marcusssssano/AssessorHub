@@ -80,18 +80,20 @@ export default function ReportChart({
       const x = 80 + gap + i * (barWidth + gap);
       const y = chartBottom - barHeight;
 
-      // Bar
-      ctx.fillStyle = ACCENT;
-      const radius = 10;
-      ctx.beginPath();
-      ctx.moveTo(x, y + Math.min(radius, barHeight));
-      ctx.arcTo(x, y, x + radius, y, radius);
-      ctx.lineTo(x + barWidth - radius, y);
-      ctx.arcTo(x + barWidth, y, x + barWidth, y + radius, radius);
-      ctx.lineTo(x + barWidth, chartBottom);
-      ctx.lineTo(x, chartBottom);
-      ctx.closePath();
-      ctx.fill();
+      // Bar (skip drawing entirely when there's nothing to show)
+      if (barHeight > 0) {
+        ctx.fillStyle = ACCENT;
+        const radius = Math.min(10, barHeight / 2);
+        ctx.beginPath();
+        ctx.moveTo(x, y + radius);
+        ctx.arcTo(x, y, x + radius, y, radius);
+        ctx.lineTo(x + barWidth - radius, y);
+        ctx.arcTo(x + barWidth, y, x + barWidth, y + radius, radius);
+        ctx.lineTo(x + barWidth, chartBottom);
+        ctx.lineTo(x, chartBottom);
+        ctx.closePath();
+        ctx.fill();
+      }
 
       // Count label above bar
       ctx.fillStyle = NAVY;
@@ -127,7 +129,10 @@ export default function ReportChart({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="w-full overflow-x-auto rounded-2xl border border-slate-200 shadow-sm">
+      <div
+        className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm"
+        style={{ width: WIDTH, maxWidth: "100%" }}
+      >
         <canvas ref={canvasRef} className="block" />
       </div>
       <button
