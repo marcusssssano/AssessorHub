@@ -23,9 +23,12 @@ export default function ReportsManager() {
   const [branch, setBranch] = useState<string>(BRANCHES[0]);
 
   const [referenceFile, setReferenceFile] = useState("");
+  const [count, setCount] = useState("");
   const [category, setCategory] = useState<CategoryKey>(CATEGORIES[0].key);
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
+
+  const isCountBased = category === "processed_return_mail";
 
   const [entries, setEntries] = useState<ReportEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,6 +136,33 @@ export default function ReportsManager() {
     e.preventDefault();
     setAddError(null);
 
+    if (isCountBased) {
+      const n = parseInt(count, 10);
+      if (!count.trim() || !Number.isFinite(n) || n <= 0) {
+        setAddError("Enter a count of 1 or more.");
+        return;
+      }
+
+      setAdding(true);
+      const rows = Array.from({ length: n }, (_, i) => ({
+        activity_month: month,
+        branch,
+        reference_file: `#${i + 1}`,
+        category,
+      }));
+      const { error } = await supabase.from("report_entries").insert(rows);
+      setAdding(false);
+
+      if (error) {
+        setAddError(error.message);
+        return;
+      }
+
+      setCount("");
+      await loadEntries();
+      return;
+    }
+
     if (!referenceFile.trim()) {
       setAddError("Reference file name is required.");
       return;
@@ -234,15 +264,29 @@ export default function ReportsManager() {
         </div>
 
         <form onSubmit={handleAdd} className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-1 min-w-[200px] flex-col gap-1.5">
-            <label className="text-xs font-medium text-slate-500">Reference File</label>
-            <input
-              value={referenceFile}
-              onChange={(e) => setReferenceFile(e.target.value)}
-              placeholder="e.g. 1002_23.png"
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
-            />
-          </div>
+          {isCountBased ? (
+            <div className="flex flex-col gap-1.5 w-32">
+              <label className="text-xs font-medium text-slate-500">Count</label>
+              <input
+                type="number"
+                min={1}
+                value={count}
+                onChange={(e) => setCount(e.target.value)}
+                placeholder="e.g. 67"
+                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+              />
+            </div>
+          ) : (
+            <div className="flex flex-1 min-w-[200px] flex-col gap-1.5">
+              <label className="text-xs font-medium text-slate-500">Reference File</label>
+              <input
+                value={referenceFile}
+                onChange={(e) => setReferenceFile(e.target.value)}
+                placeholder="e.g. 1002_23.png"
+                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+              />
+            </div>
+          )}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-slate-500">Category</label>
             <select
@@ -262,7 +306,7 @@ export default function ReportsManager() {
             disabled={adding}
             className="rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors disabled:opacity-50"
           >
-            {adding ? "Adding..." : "+ Add Entry"}
+            {adding ? "Adding..." : isCountBased ? "+ Add Count" : "+ Add Entry"}
           </button>
         </form>
         {addError && <p className="text-sm text-red-600">{addError}</p>}
