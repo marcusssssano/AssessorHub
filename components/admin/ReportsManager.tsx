@@ -6,13 +6,15 @@ import type { ReportEntry } from "@/lib/types";
 import {
   BRANCHES,
   CATEGORIES,
-  categoryLabel,
   currentMonth,
   inputValueToMonth,
   monthToInputValue,
   type CategoryKey,
 } from "@/lib/reports";
 import ReportChart from "@/components/ReportChart";
+import EditReportEntryModal from "@/components/admin/EditReportEntryModal";
+
+const PAGE_SIZE = 15;
 
 export default function ReportsManager() {
   const supabase = useMemo(() => createClient(), []);
@@ -27,7 +29,9 @@ export default function ReportsManager() {
   const [entries, setEntries] = useState<ReportEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingEntry, setEditingEntry] = useState<ReportEntry | null>(null);
+  const [filterText, setFilterText] = useState("");
+  const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
 
   async function loadEntries() {
     setLoading(true);
@@ -45,6 +49,7 @@ export default function ReportsManager() {
       setEntries(data ?? []);
     }
     setLoading(false);
+    setVisibleCounts({});
   }
 
   useEffect(() => {
@@ -63,6 +68,19 @@ export default function ReportsManager() {
     }
     return base;
   }, [entries]);
+
+  const filteredEntries = useMemo(() => {
+    const q = filterText.trim().toLowerCase();
+    if (!q) return entries;
+    return entries.filter((e) => e.reference_file.toLowerCase().includes(q));
+  }, [entries, filterText]);
+
+  const groups = useMemo(() => {
+    return CATEGORIES.map((cat) => ({
+      ...cat,
+      items: filteredEntries.filter((e) => e.category === cat.key),
+    }));
+  }, [filteredEntries]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -107,7 +125,6 @@ export default function ReportsManager() {
   ) {
     const { error } = await supabase.from("report_entries").update(values).eq("id", id);
     if (error) throw error;
-    setEditingId(null);
     await loadEntries();
   }
 
@@ -182,126 +199,103 @@ export default function ReportsManager() {
       {loading ? (
         <p className="text-sm text-slate-400">Loading...</p>
       ) : (
-        <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-          <p className="px-5 py-3 text-xs font-medium text-slate-400 border-b border-slate-100 bg-slate-50/50">
-            {entries.length} entr{entries.length === 1 ? "y" : "ies"} for {branch} — {monthToInputValue(month)}
-          </p>
-          <ul className="divide-y divide-slate-100">
-            {entries.map((entry) =>
-              editingId === entry.id ? (
-                <EntryEditRow
-                  key={entry.id}
-                  entry={entry}
-                  onSave={(values) => handleEditSave(entry.id, values)}
-                  onCancel={() => setEditingId(null)}
-                />
-              ) : (
-                <li
-                  key={entry.id}
-                  className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-slate-50/60 transition-colors"
-                >
-                  <div className="min-w-0 flex flex-col">
-                    <span className="font-medium text-[var(--navy-900)] truncate">
-                      {entry.reference_file}
-                    </span>
-                    <span className="text-xs text-slate-400">{categoryLabel(entry.category)}</span>
-                  </div>
-                  <div className="shrink-0 flex items-center gap-2 text-sm">
-                    <button
-                      onClick={() => setEditingId(entry.id)}
-                      className="rounded-full px-3 py-1.5 text-[var(--accent)] hover:bg-[var(--accent-light)] transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(entry.id, entry.reference_file)}
-                      className="rounded-full px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </li>
-              )
-            )}
-          </ul>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-4">
+            <h3 className="text-sm font-semibold text-[var(--navy-900)]">
+              {entries.length} entr{entries.length === 1 ? "y" : "ies"} for {branch} — {monthToInputValue(month)}
+            </h3>
+            <div className="relative w-full max-w-xs">
+              <svg
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <circle cx="11" cy="11" r="7" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+                placeholder="Filter by reference file..."
+                className="w-full rounded-full border border-slate-200 bg-white pl-9 pr-4 py-2 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+              />
+            </div>
+          </div>
+
+          {groups.map((group) => {
+            const visible = visibleCounts[group.key] ?? PAGE_SIZE;
+            const shown = group.items.slice(0, visible);
+            const remaining = group.items.length - shown.length;
+
+            return (
+              <div
+                key={group.key}
+                className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm"
+              >
+                <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50/50">
+                  <span className="text-sm font-semibold text-[var(--navy-900)]">{group.label}</span>
+                  <span className="rounded-full bg-[var(--accent-light)] px-2.5 py-0.5 text-xs font-medium text-[var(--accent)]">
+                    {group.items.length}
+                  </span>
+                </div>
+
+                {group.items.length === 0 ? (
+                  <p className="px-5 py-4 text-sm text-slate-400">No entries.</p>
+                ) : (
+                  <>
+                    <ul className="divide-y divide-slate-100">
+                      {shown.map((entry) => (
+                        <li
+                          key={entry.id}
+                          className="flex items-center justify-between gap-4 px-5 py-3 hover:bg-slate-50/60 transition-colors"
+                        >
+                          <span className="font-medium text-[var(--navy-900)] truncate">
+                            {entry.reference_file}
+                          </span>
+                          <div className="shrink-0 flex items-center gap-2 text-sm">
+                            <button
+                              onClick={() => setEditingEntry(entry)}
+                              className="rounded-full px-3 py-1.5 text-[var(--accent)] hover:bg-[var(--accent-light)] transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(entry.id, entry.reference_file)}
+                              className="rounded-full px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                    {remaining > 0 && (
+                      <button
+                        onClick={() =>
+                          setVisibleCounts((v) => ({ ...v, [group.key]: visible + PAGE_SIZE }))
+                        }
+                        className="w-full px-5 py-3 text-sm text-[var(--accent)] hover:bg-slate-50 transition-colors border-t border-slate-100"
+                      >
+                        Show {Math.min(remaining, PAGE_SIZE)} more ({remaining} remaining)
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
+
+      {editingEntry && (
+        <EditReportEntryModal
+          entry={editingEntry}
+          onSave={(values) => handleEditSave(editingEntry.id, values)}
+          onClose={() => setEditingEntry(null)}
+        />
+      )}
     </div>
-  );
-}
-
-function EntryEditRow({
-  entry,
-  onSave,
-  onCancel,
-}: {
-  entry: ReportEntry;
-  onSave: (values: { reference_file: string; category: CategoryKey }) => Promise<void>;
-  onCancel: () => void;
-}) {
-  const [referenceFile, setReferenceFile] = useState(entry.reference_file);
-  const [category, setCategory] = useState<CategoryKey>(entry.category as CategoryKey);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    if (!referenceFile.trim()) {
-      setError("Reference file name is required.");
-      return;
-    }
-    setSaving(true);
-    try {
-      await onSave({ reference_file: referenceFile.trim(), category });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <li className="p-5 bg-[var(--accent-light)]/40">
-      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
-        <div className="flex flex-1 min-w-[200px] flex-col gap-1.5">
-          <label className="text-xs font-medium text-slate-500">Reference File</label>
-          <input
-            value={referenceFile}
-            onChange={(e) => setReferenceFile(e.target.value)}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-slate-500">Category</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value as CategoryKey)}
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
-          >
-            {CATEGORIES.map((c) => (
-              <option key={c.key} value={c.key}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors disabled:opacity-50"
-        >
-          {saving ? "Saving..." : "Save"}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-full px-5 py-2.5 text-sm text-slate-500 hover:bg-slate-100 transition-colors"
-        >
-          Cancel
-        </button>
-      </form>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-    </li>
   );
 }
