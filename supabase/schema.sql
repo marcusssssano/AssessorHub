@@ -6,6 +6,7 @@ create table if not exists links (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   url text not null,
+  county text,
   notes text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

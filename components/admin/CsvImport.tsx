@@ -22,6 +22,7 @@ export default function CsvImport() {
   const [rows, setRows] = useState<CsvRow[]>([]);
   const [titleCol, setTitleCol] = useState(NONE);
   const [urlCol, setUrlCol] = useState(NONE);
+  const [countyCol, setCountyCol] = useState(NONE);
   const [notesCol, setNotesCol] = useState(NONE);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -38,7 +39,8 @@ export default function CsvImport() {
         setHeaders(fields);
         setRows(results.data);
         setTitleCol(guessColumn(fields, [/title/i, /name/i]));
-        setUrlCol(guessColumn(fields, [/url/i, /link/i]));
+        setUrlCol(guessColumn(fields, [/url/i, /link/i, /site/i]));
+        setCountyCol(guessColumn(fields, [/county/i]));
         setNotesCol(guessColumn(fields, [/note/i, /comment/i]));
       },
       error: (err) => setError(err.message),
@@ -49,6 +51,7 @@ export default function CsvImport() {
     .map((row) => ({
       title: titleCol !== NONE ? (row[titleCol] ?? "").trim() : "",
       url: urlCol !== NONE ? (row[urlCol] ?? "").trim() : "",
+      county: countyCol !== NONE ? (row[countyCol] ?? "").trim() || null : null,
       notes: notesCol !== NONE ? (row[notesCol] ?? "").trim() || null : null,
     }))
     .filter((r) => r.title && r.url);
@@ -108,6 +111,7 @@ export default function CsvImport() {
           <div className="flex flex-wrap gap-4">
             <ColumnSelect label="Title column" headers={headers} value={titleCol} onChange={setTitleCol} />
             <ColumnSelect label="URL column" headers={headers} value={urlCol} onChange={setUrlCol} />
+            <ColumnSelect label="County column (optional)" headers={headers} value={countyCol} onChange={setCountyCol} />
             <ColumnSelect label="Notes column (optional)" headers={headers} value={notesCol} onChange={setNotesCol} />
           </div>
 
@@ -122,6 +126,7 @@ export default function CsvImport() {
                 <tr>
                   <th className="px-4 py-2.5">Title</th>
                   <th className="px-4 py-2.5">URL</th>
+                  <th className="px-4 py-2.5">County</th>
                   <th className="px-4 py-2.5">Notes</th>
                 </tr>
               </thead>
@@ -130,6 +135,7 @@ export default function CsvImport() {
                   <tr key={i}>
                     <td className="px-4 py-2.5 text-[var(--navy-900)]">{row.title}</td>
                     <td className="px-4 py-2.5 truncate max-w-xs text-slate-500">{row.url}</td>
+                    <td className="px-4 py-2.5 text-slate-400">{row.county}</td>
                     <td className="px-4 py-2.5 text-slate-400">{row.notes}</td>
                   </tr>
                 ))}

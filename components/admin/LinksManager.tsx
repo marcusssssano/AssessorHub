@@ -123,7 +123,14 @@ export default function LinksManager() {
                   className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-slate-50/60 transition-colors"
                 >
                   <div className="min-w-0 flex flex-col">
-                    <span className="font-medium text-[var(--navy-900)] truncate">{link.title}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-[var(--navy-900)] truncate">{link.title}</span>
+                      {link.county && (
+                        <span className="shrink-0 rounded-full bg-[var(--accent-light)] px-2 py-0.5 text-[10px] font-medium text-[var(--accent)]">
+                          {link.county}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-xs text-slate-400 truncate">{link.url}</span>
                   </div>
                   <div className="shrink-0 flex items-center gap-2 text-sm">

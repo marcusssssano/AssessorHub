@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { Link } from "@/lib/types";
+import LinkModal from "./LinkModal";
 
 export default function SearchDashboard() {
   const supabase = useMemo(() => createClient(), []);
@@ -10,6 +11,7 @@ export default function SearchDashboard() {
   const [links, setLinks] = useState<Link[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Link | null>(null);
 
   useEffect(() => {
     const handle = setTimeout(async () => {
@@ -56,7 +58,7 @@ export default function SearchDashboard() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by name (e.g. Maricopa, Hauskon)..."
+          placeholder="Search by association name..."
           className="w-full rounded-full border border-slate-200 bg-white pl-12 pr-5 py-4 text-base shadow-[0_2px_12px_rgba(15,29,56,0.08)] outline-none transition-shadow focus:border-[var(--accent)] focus:shadow-[0_2px_16px_rgba(47,111,237,0.25)]"
         />
       </div>
@@ -72,11 +74,9 @@ export default function SearchDashboard() {
       <ul className="flex flex-col gap-2">
         {links.map((link) => (
           <li key={link.id}>
-            <a
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm transition-all hover:border-[var(--accent)]/40 hover:shadow-[0_4px_16px_rgba(15,29,56,0.08)]"
+            <button
+              onClick={() => setSelected(link)}
+              className="group flex w-full items-center gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-left shadow-sm transition-all hover:border-[var(--accent)]/40 hover:shadow-[0_4px_16px_rgba(15,29,56,0.08)]"
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-light)] text-[var(--accent)]">
                 <svg
@@ -97,12 +97,11 @@ export default function SearchDashboard() {
                 <span className="font-medium text-[var(--navy-900)] group-hover:text-[var(--accent)] transition-colors">
                   {link.title}
                 </span>
-                <span className="text-xs text-slate-400 truncate">{link.url}</span>
-                {link.notes && (
-                  <span className="text-xs text-slate-400 mt-1">{link.notes}</span>
+                {link.county && (
+                  <span className="text-xs text-slate-400">{link.county} County</span>
                 )}
               </div>
-            </a>
+            </button>
           </li>
         ))}
       </ul>
@@ -110,6 +109,8 @@ export default function SearchDashboard() {
       {loading && (
         <p className="text-sm text-slate-400 text-center">Loading...</p>
       )}
+
+      {selected && <LinkModal link={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }

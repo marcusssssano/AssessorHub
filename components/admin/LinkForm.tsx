@@ -6,6 +6,7 @@ import type { Link } from "@/lib/types";
 export interface LinkFormValues {
   title: string;
   url: string;
+  county: string;
   notes: string;
 }
 
@@ -22,6 +23,7 @@ export default function LinkForm({
 }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [url, setUrl] = useState(initial?.url ?? "");
+  const [county, setCounty] = useState(initial?.county ?? "");
   const [notes, setNotes] = useState(initial?.notes ?? "");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -42,7 +44,12 @@ export default function LinkForm({
 
     setSaving(true);
     try {
-      await onSubmit({ title: title.trim(), url: normalizedUrl, notes: notes.trim() });
+      await onSubmit({
+        title: title.trim(),
+        url: normalizedUrl,
+        county: county.trim(),
+        notes: notes.trim(),
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -68,6 +75,16 @@ export default function LinkForm({
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://..."
+          className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-medium text-slate-500">County (optional)</label>
+        <input
+          value={county}
+          onChange={(e) => setCounty(e.target.value)}
+          placeholder="e.g. Maricopa"
           className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
         />
       </div>
