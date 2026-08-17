@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AssessorHub",
   description: "Searchable directory of county assessor and parcel viewer links",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "AssessorHub",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0b1f3f",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
