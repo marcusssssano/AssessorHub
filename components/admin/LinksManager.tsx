@@ -14,12 +14,24 @@ export default function LinksManager() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  async function loadLinks() {
+  async function loadLinks(searchTerm: string) {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("links")
-      .select("*")
-      .order("title", { ascending: true });
+    setError(null);
+
+    const request = searchTerm.trim()
+      ? supabase
+          .from("links")
+          .select("*")
+          .ilike("title", `%${searchTerm.trim()}%`)
+          .order("title", { ascending: true })
+          .limit(200)
+      : supabase
+          .from("links")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(50);
+
+    const { data, error } = await request;
 
     if (error) {
       setError(error.message);
@@ -30,26 +42,23 @@ export default function LinksManager() {
   }
 
   useEffect(() => {
-    loadLinks();
+    const handle = setTimeout(() => loadLinks(query), 150);
+    return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const filtered = links.filter((link) =>
-    link.title.toLowerCase().includes(query.trim().toLowerCase())
-  );
+  }, [query]);
 
   async function handleAdd(values: LinkFormValues) {
     const { error } = await supabase.from("links").insert(values);
     if (error) throw error;
     setShowAddForm(false);
-    await loadLinks();
+    await loadLinks(query);
   }
 
   async function handleEdit(id: string, values: LinkFormValues) {
     const { error } = await supabase.from("links").update(values).eq("id", id);
     if (error) throw error;
     setEditingId(null);
-    await loadLinks();
+    await loadLinks(query);
   }
 
   async function handleDelete(id: string, title: string) {
@@ -59,7 +68,7 @@ export default function LinksManager() {
       setError(error.message);
       return;
     }
-    await loadLinks();
+    await loadLinks(query);
   }
 
   return (
@@ -79,7 +88,7 @@ export default function LinksManager() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Filter by title..."
+            placeholder="Search by title..."
             className="w-full rounded-full border border-slate-200 bg-white pl-10 pr-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
           />
         </div>
@@ -104,10 +113,12 @@ export default function LinksManager() {
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
           <p className="px-5 py-3 text-xs font-medium text-slate-400 border-b border-slate-100 bg-slate-50/50">
-            {filtered.length} link{filtered.length === 1 ? "" : "s"}
+            {query.trim()
+              ? `${links.length} result${links.length === 1 ? "" : "s"}`
+              : `${links.length} most recently added`}
           </p>
           <ul className="divide-y divide-slate-100">
-            {filtered.map((link) =>
+            {links.map((link) =>
               editingId === link.id ? (
                 <li key={link.id} className="p-5 bg-[var(--accent-light)]/40">
                   <LinkForm
