@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -34,10 +35,20 @@ export default function LoginPage() {
 
   return (
     <div className="flex-1 flex items-center justify-center px-6 bg-[var(--navy-900)]">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm flex flex-col gap-5 rounded-3xl border border-white/10 bg-white p-8 shadow-2xl"
-      >
+      <div className="w-full max-w-sm flex flex-col gap-4">
+        <Link
+          href="/"
+          className="inline-flex w-fit items-center gap-1.5 rounded-full border border-white/20 px-4 py-1.5 text-sm text-white/80 hover:text-white hover:border-white/40 transition-colors"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+          </svg>
+          Back
+        </Link>
+        <form
+          onSubmit={handleSubmit}
+          className="w-full flex flex-col gap-5 rounded-3xl border border-white/10 bg-white p-8 shadow-2xl"
+        >
         <div className="flex flex-col items-center gap-3 pb-2">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)] text-white font-bold">
             AH
@@ -87,7 +98,8 @@ export default function LoginPage() {
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }
