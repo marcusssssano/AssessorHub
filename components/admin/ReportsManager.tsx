@@ -7,6 +7,7 @@ import {
   BRANCHES,
   CATEGORIES,
   currentMonth,
+  defaultDescription,
   inputValueToMonth,
   monthToInputValue,
   type CategoryKey,
@@ -36,6 +37,11 @@ export default function ReportsManager() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
 
+  const [description, setDescription] = useState("");
+  const [descriptionLoading, setDescriptionLoading] = useState(true);
+  const [descriptionSaving, setDescriptionSaving] = useState(false);
+  const [descriptionSaved, setDescriptionSaved] = useState(false);
+
   async function loadEntries() {
     setLoading(true);
     setError(null);
@@ -56,10 +62,47 @@ export default function ReportsManager() {
     setSelectedIds(new Set());
   }
 
+  async function loadDescription() {
+    setDescriptionLoading(true);
+    const { data, error } = await supabase
+      .from("report_descriptions")
+      .select("description")
+      .eq("activity_month", month)
+      .eq("branch", branch)
+      .maybeSingle();
+
+    if (!error && data) {
+      setDescription(data.description);
+    } else {
+      setDescription(defaultDescription(month));
+    }
+    setDescriptionLoading(false);
+  }
+
   useEffect(() => {
     loadEntries();
+    loadDescription();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month, branch]);
+
+  async function handleSaveDescription() {
+    setDescriptionSaving(true);
+    setDescriptionSaved(false);
+    const { error } = await supabase
+      .from("report_descriptions")
+      .upsert(
+        { activity_month: month, branch, description: description.trim() || defaultDescription(month) },
+        { onConflict: "activity_month,branch" }
+      );
+    setDescriptionSaving(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setDescriptionSaved(true);
+    setTimeout(() => setDescriptionSaved(false), 2000);
+  }
 
   const counts = useMemo(() => {
     const base: Record<CategoryKey, number> = {
@@ -225,7 +268,39 @@ export default function ReportsManager() {
         {addError && <p className="text-sm text-red-600">{addError}</p>}
       </div>
 
-      <ReportChart activityMonth={month} branch={branch} counts={counts} fileNamePrefix="AssessorHub-Report" />
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col gap-3">
+        <label className="text-xs font-medium text-slate-500">Report Description</label>
+        {descriptionLoading ? (
+          <p className="text-sm text-slate-400">Loading...</p>
+        ) : (
+          <>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+            />
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleSaveDescription}
+                disabled={descriptionSaving}
+                className="self-start rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors disabled:opacity-50"
+              >
+                {descriptionSaving ? "Saving..." : "Save Description"}
+              </button>
+              {descriptionSaved && <span className="text-sm text-emerald-600">Saved!</span>}
+            </div>
+          </>
+        )}
+      </div>
+
+      <ReportChart
+        activityMonth={month}
+        branch={branch}
+        counts={counts}
+        description={description}
+        fileNamePrefix="AssessorHub-Report"
+      />
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

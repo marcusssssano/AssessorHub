@@ -17,6 +17,7 @@ export default function PublicReportsViewer() {
   const [month, setMonth] = useState<string | null>(null);
   const [branch, setBranch] = useState<string | null>(null);
   const [counts, setCounts] = useState<Record<CategoryKey, number> | null>(null);
+  const [description, setDescription] = useState<string | null>(null);
   const [loadingCounts, setLoadingCounts] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,6 +95,24 @@ export default function PublicReportsViewer() {
     loadCounts();
   }, [month, branch, supabase]);
 
+  useEffect(() => {
+    async function loadDescription() {
+      if (!month || !branch) {
+        setDescription(null);
+        return;
+      }
+      const { data } = await supabase
+        .from("report_descriptions")
+        .select("description")
+        .eq("activity_month", month)
+        .eq("branch", branch)
+        .maybeSingle();
+
+      setDescription(data?.description ?? null);
+    }
+    loadDescription();
+  }, [month, branch, supabase]);
+
   if (loadingAvailable) {
     return <p className="text-sm text-slate-400 text-center">Loading reports...</p>;
   }
@@ -146,7 +165,13 @@ export default function PublicReportsViewer() {
       {loadingCounts && <p className="text-sm text-slate-400 text-center">Loading chart...</p>}
 
       {!loadingCounts && counts && month && branch && (
-        <ReportChart activityMonth={month} branch={branch} counts={counts} fileNamePrefix="AssessorHub-Report" />
+        <ReportChart
+          activityMonth={month}
+          branch={branch}
+          counts={counts}
+          description={description}
+          fileNamePrefix="AssessorHub-Report"
+        />
       )}
     </div>
   );

@@ -1,0 +1,108 @@
+[
+  {
+    "collection": "C3 Notes - BAP",
+    "section": "Accomplished",
+    "title": "NEW ADDRESS FOUND",
+    "body": "* New Address found \n* STATUS: Accomplished",
+    "sort_order": 1
+  },
+  {
+    "collection": "C3 Notes - BAP",
+    "section": "Accomplished",
+    "title": "SAME ADDRESS FOUND",
+    "body": "* Same Address found \n* STATUS: Accomplished",
+    "sort_order": 2
+  },
+  {
+    "collection": "C3 Notes - BAP",
+    "section": "Outstanding",
+    "title": "UNABLE TO FIND ACCT IN CAD",
+    "body": "* Unable to Find  Unit Address / Owner Name in Cad Site.\n* Status: Outstanding",
+    "sort_order": 3
+  },
+
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Accomplished",
+    "title": "SAME ADDRESS",
+    "body": "CAD Site has the same mailing address as C3. Acct w/ Email - Status: Accomplished",
+    "sort_order": 1
+  },
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Accomplished",
+    "title": "NEW ADDRESS FOUND",
+    "body": "New Address found in Cad Site.\nORDER #: \n- STATUS: Accomplished",
+    "sort_order": 2
+  },
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Accomplished",
+    "title": "RECENTLY UPDATED",
+    "body": "C3 Notes shows address was recently updated. \n- STATUS: Accomplished",
+    "sort_order": 3
+  },
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Accomplished",
+    "title": "UNABLE TO FIND ACCT IN CAD",
+    "body": "Unable to Find  Unit Address / Owner Name in Cad Site - w/ Email. - Status: Accomplished",
+    "sort_order": 4
+  },
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Accomplished",
+    "title": "NEW OWNER",
+    "body": "Cad Site displays New Owner on Deed - Status: Accomplished",
+    "sort_order": 5
+  },
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Accomplished",
+    "title": "OWNER REPLIED - NEW ADDRESS",
+    "body": "Owner replied to the info requested Address updated - Status: Accomplished",
+    "sort_order": 6
+  },
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Accomplished",
+    "title": "OWNER CONFIRMED - SAME ADDRESS",
+    "body": "Owner confirmed the address is correct and no changes are needed.\nStatus: Accomplished",
+    "sort_order": 7
+  },
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Accomplished",
+    "title": "ACCT IN COLLECTION",
+    "body": "Account status in Collection\nStatus : Accomplished",
+    "sort_order": 8
+  },
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Outstanding",
+    "title": "SAME ADDRESS NO EMAIL",
+    "body": "CAD Site has the similar mailing address as C3. Acct w/o Email - Status: Outstanding",
+    "sort_order": 9
+  },
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Outstanding",
+    "title": "CANT LOCATE ACCT IN CAD - NO EMAIL",
+    "body": "Cant Locate Unit Address / Owner Name in Cad Site - Acct w/o Email. - Status: Outstanding",
+    "sort_order": 10
+  },
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Outstanding",
+    "title": "ACCT UNAVAILABLE IN C3",
+    "body": "Account Unavailable in C3 - Status: Outstanding",
+    "sort_order": 11
+  },
+  {
+    "collection": "C3 Notes - CSSC",
+    "section": "Outstanding",
+    "title": "ZZ ASSOCIATION",
+    "body": "The account is linked to an association that the Branch no longer manages. - STATUS: Outstanding",
+    "sort_order": 12
+  }
+]

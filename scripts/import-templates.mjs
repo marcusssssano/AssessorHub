@@ -8,9 +8,10 @@ for (const line of readFileSync(".env.local", "utf-8").split("\n")) {
 
 const email = process.argv[2];
 const password = process.argv[3];
+const seedFile = process.argv[4] ?? "scripts/templates-seed.json";
 
 if (!email || !password) {
-  console.error("Usage: node scripts/import-templates.mjs <email> <password>");
+  console.error("Usage: node scripts/import-templates.mjs <email> <password> [seed-file]");
   process.exit(1);
 }
 
@@ -25,7 +26,7 @@ if (authError) {
   process.exit(1);
 }
 
-const records = JSON.parse(readFileSync("scripts/templates-seed.json", "utf-8"));
+const records = JSON.parse(readFileSync(seedFile, "utf-8"));
 console.log(`Importing ${records.length} templates...`);
 
 const { error } = await supabase.from("note_templates").insert(records);

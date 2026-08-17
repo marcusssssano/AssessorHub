@@ -40,6 +40,11 @@ export function addMonths(monthStr: string, n: number): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-01`;
 }
 
+/** The default auto-generated subtitle line for a report. */
+export function defaultDescription(activityMonth: string): string {
+  return `Please note that this data is for the ${formatMonth(activityMonth)} activity.`;
+}
+
 /** Current month as "YYYY-MM-01". */
 export function currentMonth(): string {
   const now = new Date();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { addMonths, categoryLabel, CATEGORIES, formatMonth, type CategoryKey } from "@/lib/reports";
+import { categoryLabel, CATEGORIES, defaultDescription, formatMonth, addMonths, type CategoryKey } from "@/lib/reports";
 
 const WIDTH = 900;
 const HEIGHT = 600;
@@ -14,11 +14,13 @@ export default function ReportChart({
   activityMonth,
   branch,
   counts,
+  description,
   fileNamePrefix,
 }: {
   activityMonth: string;
   branch: string;
   counts: Record<CategoryKey, number>;
+  description?: string | null;
   fileNamePrefix?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -40,32 +42,33 @@ export default function ReportChart({
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
+    const reportTitle = formatMonth(addMonths(activityMonth, 1));
+    const subtitle = description?.trim() || defaultDescription(activityMonth);
+
+    ctx.textBaseline = "alphabetic";
+    ctx.font = "400 16px Arial, sans-serif";
+    const descLines = wrapLines(ctx, subtitle, WIDTH - 80);
+
+    const headerHeight = 96 + descLines.length * 22;
+
     // Header band
     ctx.fillStyle = NAVY;
-    ctx.fillRect(0, 0, WIDTH, 140);
-
-    const reportTitle = formatMonth(addMonths(activityMonth, 1));
-    const activityLabel = formatMonth(activityMonth);
+    ctx.fillRect(0, 0, WIDTH, headerHeight);
 
     ctx.fillStyle = "#ffffff";
     ctx.font = "700 34px Arial, sans-serif";
-    ctx.textBaseline = "alphabetic";
     ctx.fillText(reportTitle, 40, 58);
 
     ctx.font = "400 16px Arial, sans-serif";
     ctx.fillStyle = "#c7d3e8";
-    ctx.fillText(
-      `Please note that this data is for the ${activityLabel} activity.`,
-      40,
-      86
-    );
+    descLines.forEach((line, i) => ctx.fillText(line, 40, 86 + i * 22));
 
     ctx.font = "700 15px Arial, sans-serif";
     ctx.fillStyle = ACCENT_LIGHT;
-    ctx.fillText(`BRANCH: ${branch}`, 40, 118);
+    ctx.fillText(`BRANCH: ${branch}`, 40, headerHeight - 22);
 
     // Bars
-    const chartTop = 190;
+    const chartTop = headerHeight + 50;
     const chartBottom = HEIGHT - 90;
     const chartHeight = chartBottom - chartTop;
     const maxCount = Math.max(1, ...CATEGORIES.map((c) => counts[c.key] ?? 0));
@@ -115,7 +118,7 @@ export default function ReportChart({
     ctx.moveTo(60, chartBottom + 0.5);
     ctx.lineTo(WIDTH - 40, chartBottom + 0.5);
     ctx.stroke();
-  }, [activityMonth, branch, counts]);
+  }, [activityMonth, branch, counts, description]);
 
   function handleDownload() {
     const canvas = canvasRef.current;
@@ -143,6 +146,24 @@ export default function ReportChart({
       </button>
     </div>
   );
+}
+
+function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(" ");
+  let line = "";
+  const lines: string[] = [];
+
+  for (const word of words) {
+    const testLine = line ? `${line} ${word}` : word;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
 }
 
 function wrapText(

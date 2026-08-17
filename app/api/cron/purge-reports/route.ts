@@ -7,10 +7,14 @@ export async function GET() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  const { error } = await supabase.rpc("purge_old_report_entries");
+  const { error: entriesError } = await supabase.rpc("purge_old_report_entries");
+  if (entriesError) {
+    return NextResponse.json({ ok: false, error: entriesError.message }, { status: 500 });
+  }
 
-  if (error) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+  const { error: descriptionsError } = await supabase.rpc("purge_old_report_descriptions");
+  if (descriptionsError) {
+    return NextResponse.json({ ok: false, error: descriptionsError.message }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, ranAt: new Date().toISOString() });
