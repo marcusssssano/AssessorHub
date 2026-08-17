@@ -34,6 +34,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Note Templates
             </Link>
             <Link
+              href="/admin/reports"
+              className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              Reports
+            </Link>
+            <Link
               href="/"
               className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
             >
@@ -44,7 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <SignOutButton />
       </header>
 
-      <main className="flex-1 px-6 py-10 max-w-5xl w-full mx-auto">{children}</main>
+      <main className="flex-1 px-6 py-10 max-w-6xl w-full mx-auto">{children}</main>
     </div>
   );
 }

@@ -18,3 +18,13 @@ export interface NoteTemplate {
   created_at: string;
   updated_at: string;
 }
+
+export interface ReportEntry {
+  id: string;
+  activity_month: string;
+  branch: string;
+  reference_file: string;
+  category: string;
+  created_at: string;
+  updated_at: string;
+}
