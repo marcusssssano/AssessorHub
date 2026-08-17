@@ -49,7 +49,11 @@ export default function ReportChart({
     ctx.font = "400 16px Arial, sans-serif";
     const descLines = wrapLines(ctx, subtitle, WIDTH - 80);
 
-    const headerHeight = 96 + descLines.length * 22;
+    const subtitleStartY = 90;
+    const subtitleLineHeight = 24;
+    const lastSubtitleBaseline = subtitleStartY + (descLines.length - 1) * subtitleLineHeight;
+    const branchY = lastSubtitleBaseline + 34;
+    const headerHeight = branchY + 18;
 
     // Header band
     ctx.fillStyle = NAVY;
@@ -61,11 +65,11 @@ export default function ReportChart({
 
     ctx.font = "400 16px Arial, sans-serif";
     ctx.fillStyle = "#c7d3e8";
-    descLines.forEach((line, i) => ctx.fillText(line, 40, 86 + i * 22));
+    descLines.forEach((line, i) => ctx.fillText(line, 40, subtitleStartY + i * subtitleLineHeight));
 
     ctx.font = "700 15px Arial, sans-serif";
     ctx.fillStyle = ACCENT_LIGHT;
-    ctx.fillText(`BRANCH: ${branch}`, 40, headerHeight - 22);
+    ctx.fillText(`BRANCH: ${branch}`, 40, branchY);
 
     // Bars
     const chartTop = headerHeight + 50;
