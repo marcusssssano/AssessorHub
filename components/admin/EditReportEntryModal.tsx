@@ -10,13 +10,16 @@ export default function EditReportEntryModal({
   onClose,
 }: {
   entry: ReportEntry;
-  onSave: (values: { reference_file: string; category: CategoryKey }) => Promise<void>;
+  onSave: (values: { reference_file: string | null; category: CategoryKey; count: number }) => Promise<void>;
   onClose: () => void;
 }) {
-  const [referenceFile, setReferenceFile] = useState(entry.reference_file);
+  const [referenceFile, setReferenceFile] = useState(entry.reference_file ?? "");
+  const [count, setCount] = useState(String(entry.count));
   const [category, setCategory] = useState<CategoryKey>(entry.category as CategoryKey);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isCountBased = category === "processed_return_mail";
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -29,13 +32,31 @@ export default function EditReportEntryModal({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (isCountBased) {
+      const n = parseInt(count, 10);
+      if (!count.trim() || !Number.isFinite(n) || n <= 0) {
+        setError("Enter a count of 1 or more.");
+        return;
+      }
+      setSaving(true);
+      try {
+        await onSave({ reference_file: null, category, count: n });
+        onClose();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong.");
+        setSaving(false);
+      }
+      return;
+    }
+
     if (!referenceFile.trim()) {
       setError("Reference file name is required.");
       return;
     }
     setSaving(true);
     try {
-      await onSave({ reference_file: referenceFile.trim(), category });
+      await onSave({ reference_file: referenceFile.trim(), category, count: 1 });
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -67,16 +88,6 @@ export default function EditReportEntryModal({
 
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-slate-500">Reference File</label>
-            <input
-              autoFocus
-              value={referenceFile}
-              onChange={(e) => setReferenceFile(e.target.value)}
-              className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-slate-500">Category</label>
             <select
               value={category}
@@ -90,6 +101,30 @@ export default function EditReportEntryModal({
               ))}
             </select>
           </div>
+
+          {isCountBased ? (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-slate-500">Count</label>
+              <input
+                autoFocus
+                type="number"
+                min={1}
+                value={count}
+                onChange={(e) => setCount(e.target.value)}
+                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-slate-500">Reference File</label>
+              <input
+                autoFocus
+                value={referenceFile}
+                onChange={(e) => setReferenceFile(e.target.value)}
+                className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+              />
+            </div>
+          )}
 
           {error && <p className="text-sm text-red-600">{error}</p>}
 

@@ -15,11 +15,15 @@ export default function TemplateForm({
   submitLabel,
   onSubmit,
   onCancel,
+  existingCollections = [],
+  sectionsByCollection = {},
 }: {
   initial?: NoteTemplate;
   submitLabel: string;
   onSubmit: (values: TemplateFormValues) => Promise<void>;
   onCancel?: () => void;
+  existingCollections?: string[];
+  sectionsByCollection?: Record<string, string[]>;
 }) {
   const [collection, setCollection] = useState(initial?.collection ?? "");
   const [section, setSection] = useState(initial?.section ?? "");
@@ -61,8 +65,14 @@ export default function TemplateForm({
             value={collection}
             onChange={(e) => setCollection(e.target.value)}
             placeholder="e.g. C3 Notes - General"
+            list="collection-options"
             className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
           />
+          <datalist id="collection-options">
+            {existingCollections.map((c) => (
+              <option key={c} value={c} />
+            ))}
+          </datalist>
         </div>
         <div className="flex flex-1 flex-col gap-1.5">
           <label className="text-xs font-medium text-slate-500">Section (optional)</label>
@@ -70,8 +80,14 @@ export default function TemplateForm({
             value={section}
             onChange={(e) => setSection(e.target.value)}
             placeholder="e.g. Accomplished"
+            list="section-options"
             className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
           />
+          <datalist id="section-options">
+            {(sectionsByCollection[collection] ?? []).map((s) => (
+              <option key={s} value={s} />
+            ))}
+          </datalist>
         </div>
       </div>
 

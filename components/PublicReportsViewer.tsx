@@ -73,7 +73,7 @@ export default function PublicReportsViewer() {
       setLoadingCounts(true);
       const { data, error } = await supabase
         .from("report_entries")
-        .select("category")
+        .select("category, count")
         .eq("activity_month", month)
         .eq("branch", branch);
 
@@ -86,7 +86,7 @@ export default function PublicReportsViewer() {
           processed_return_mail: 0,
         };
         for (const row of data ?? []) {
-          if (row.category in base) base[row.category as CategoryKey]++;
+          if (row.category in base) base[row.category as CategoryKey] += row.count;
         }
         setCounts(base);
       }

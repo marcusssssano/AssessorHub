@@ -114,7 +114,7 @@ export default function ReportsManager() {
       processed_return_mail: 0,
     };
     for (const e of entries) {
-      if (e.category in base) base[e.category as CategoryKey]++;
+      if (e.category in base) base[e.category as CategoryKey] += e.count;
     }
     return base;
   }, [entries]);
@@ -122,7 +122,7 @@ export default function ReportsManager() {
   const filteredEntries = useMemo(() => {
     const q = filterText.trim().toLowerCase();
     if (!q) return entries;
-    return entries.filter((e) => e.reference_file.toLowerCase().includes(q));
+    return entries.filter((e) => (e.reference_file ?? "").toLowerCase().includes(q));
   }, [entries, filterText]);
 
   const groups = useMemo(() => {
@@ -144,13 +144,13 @@ export default function ReportsManager() {
       }
 
       setAdding(true);
-      const rows = Array.from({ length: n }, (_, i) => ({
+      const { error } = await supabase.from("report_entries").insert({
         activity_month: month,
         branch,
-        reference_file: `#${i + 1}`,
+        reference_file: null,
         category,
-      }));
-      const { error } = await supabase.from("report_entries").insert(rows);
+        count: n,
+      });
       setAdding(false);
 
       if (error) {
@@ -186,8 +186,8 @@ export default function ReportsManager() {
     await loadEntries();
   }
 
-  async function handleDelete(id: string, referenceFile: string) {
-    if (!confirm(`Delete entry "${referenceFile}"? This cannot be undone.`)) return;
+  async function handleDelete(id: string, label: string) {
+    if (!confirm(`Delete entry "${label}"? This cannot be undone.`)) return;
     const { error } = await supabase.from("report_entries").delete().eq("id", id);
     if (error) {
       setError(error.message);
@@ -198,7 +198,7 @@ export default function ReportsManager() {
 
   async function handleEditSave(
     id: string,
-    values: { reference_file: string; category: CategoryKey }
+    values: { reference_file: string | null; category: CategoryKey; count: number }
   ) {
     const { error } = await supabase.from("report_entries").update(values).eq("id", id);
     if (error) throw error;
@@ -450,7 +450,7 @@ export default function ReportsManager() {
                                 className="h-4 w-4 shrink-0 rounded border-slate-300 text-[var(--accent)] focus:ring-[var(--accent)]/30"
                               />
                               <span className="font-medium text-[var(--navy-900)] truncate">
-                                {entry.reference_file}
+                                {entry.reference_file ?? `Count: ${entry.count}`}
                               </span>
                             </label>
                             <div className="shrink-0 flex items-center gap-2 text-sm">
@@ -461,7 +461,9 @@ export default function ReportsManager() {
                                 Edit
                               </button>
                               <button
-                                onClick={() => handleDelete(entry.id, entry.reference_file)}
+                                onClick={() =>
+                                  handleDelete(entry.id, entry.reference_file ?? `Count: ${entry.count}`)
+                                }
                                 className="rounded-full px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
                               >
                                 Delete

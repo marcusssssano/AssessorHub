@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import type { NoteTemplate } from "@/lib/types";
 import TemplateModal from "./TemplateModal";
 
+const FAVORITES_KEY = "__favorites__";
+
 export default function TemplatesBrowser() {
   const supabase = useMemo(() => createClient(), []);
   const [templates, setTemplates] = useState<NoteTemplate[]>([]);
@@ -29,7 +31,8 @@ export default function TemplatesBrowser() {
       } else {
         setTemplates(data ?? []);
         if (data && data.length > 0) {
-          setActiveCollection((prev) => prev ?? data[0].collection);
+          const hasFavorites = data.some((t) => t.is_favorite);
+          setActiveCollection((prev) => prev ?? (hasFavorites ? FAVORITES_KEY : data[0].collection));
         }
       }
       setLoading(false);
@@ -38,6 +41,7 @@ export default function TemplatesBrowser() {
   }, [supabase]);
 
   const collections = Array.from(new Set(templates.map((t) => t.collection)));
+  const favorites = useMemo(() => templates.filter((t) => t.is_favorite), [templates]);
 
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -127,6 +131,27 @@ export default function TemplatesBrowser() {
       ) : (
         <>
           <div className="flex flex-wrap justify-center gap-2">
+            {favorites.length > 0 && (
+              <button
+                onClick={() => setActiveCollection(FAVORITES_KEY)}
+                className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                  activeCollection === FAVORITES_KEY
+                    ? "bg-[var(--navy-900)] text-white"
+                    : "bg-white text-slate-500 border border-slate-200 hover:border-[var(--accent)]/40"
+                }`}
+              >
+                <svg
+                  className="h-3.5 w-3.5"
+                  fill={activeCollection === FAVORITES_KEY ? "currentColor" : "none"}
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m11.48 3.499 2.286 4.634a.532.532 0 0 0 .4.29l5.114.743a.535.535 0 0 1 .296.913l-3.7 3.607a.532.532 0 0 0-.153.47l.874 5.095a.534.534 0 0 1-.775.563l-4.573-2.402a.535.535 0 0 0-.498 0L6.178 19.81a.534.534 0 0 1-.775-.563l.874-5.096a.532.532 0 0 0-.153-.47l-3.7-3.606a.535.535 0 0 1 .296-.913l5.115-.743a.532.532 0 0 0 .4-.29l2.285-4.634a.534.534 0 0 1 .96 0Z" />
+                </svg>
+                Favorites
+              </button>
+            )}
             {collections.map((c) => (
               <button
                 key={c}
@@ -142,6 +167,30 @@ export default function TemplatesBrowser() {
             ))}
           </div>
 
+          {activeCollection === FAVORITES_KEY ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {favorites.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setSelected(t)}
+                  className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left shadow-sm transition-all hover:border-[var(--accent)]/40 hover:shadow-[0_4px_16px_rgba(15,29,56,0.08)]"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m11.48 3.499 2.286 4.634a.532.532 0 0 0 .4.29l5.114.743a.535.535 0 0 1 .296.913l-3.7 3.607a.532.532 0 0 0-.153.47l.874 5.095a.534.534 0 0 1-.775.563l-4.573-2.402a.535.535 0 0 0-.498 0L6.178 19.81a.534.534 0 0 1-.775-.563l.874-5.096a.532.532 0 0 0-.153-.47l-3.7-3.606a.535.535 0 0 1 .296-.913l5.115-.743a.532.532 0 0 0 .4-.29l2.285-4.634a.534.534 0 0 1 .96 0Z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex flex-col">
+                    <span className="text-sm font-medium text-[var(--navy-900)] truncate">{t.title}</span>
+                    <span className="text-xs text-slate-400 truncate">
+                      {t.collection}
+                      {t.section ? ` · ${t.section}` : ""}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
           <div className="flex flex-col gap-8">
             {Array.from(sections.entries()).map(([section, items]) => (
               <div key={section || "_"} className="flex flex-col gap-3">
@@ -169,6 +218,7 @@ export default function TemplatesBrowser() {
               </div>
             ))}
           </div>
+          )}
         </>
       )}
 
