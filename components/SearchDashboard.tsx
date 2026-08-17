@@ -14,20 +14,22 @@ export default function SearchDashboard() {
   const [selected, setSelected] = useState<Link | null>(null);
 
   useEffect(() => {
+    if (!query.trim()) {
+      setLinks([]);
+      setLoading(false);
+      return;
+    }
+
     const handle = setTimeout(async () => {
       setLoading(true);
       setError(null);
 
-      let request = supabase
+      const { data, error } = await supabase
         .from("links")
         .select("*")
-        .order("title", { ascending: true });
-
-      if (query.trim()) {
-        request = request.ilike("title", `%${query.trim()}%`);
-      }
-
-      const { data, error } = await request;
+        .ilike("title", `%${query.trim()}%`)
+        .order("title", { ascending: true })
+        .limit(50);
 
       if (error) {
         setError(error.message);
@@ -65,9 +67,21 @@ export default function SearchDashboard() {
 
       {error && <p className="text-sm text-red-600 px-2">{error}</p>}
 
+      {!query.trim() && (
+        <p className="text-sm text-slate-400 text-center">
+          Start typing an association name to search.
+        </p>
+      )}
+
       {!loading && query.trim() && links.length === 0 && !error && (
         <p className="text-sm text-slate-400 text-center">
           No links match &quot;{query}&quot;.
+        </p>
+      )}
+
+      {!loading && links.length === 50 && (
+        <p className="text-xs text-slate-400 text-center">
+          Showing first 50 results — refine your search for more.
         </p>
       )}
 

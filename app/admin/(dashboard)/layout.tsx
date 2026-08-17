@@ -28,6 +28,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Bulk Import
             </Link>
             <Link
+              href="/admin/templates"
+              className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              Note Templates
+            </Link>
+            <Link
               href="/"
               className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
             >

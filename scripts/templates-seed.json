@@ -1,0 +1,221 @@
+[
+  {
+    "collection": "Email - Mailing Inquiry",
+    "section": "Email/Letter Responses",
+    "title": "Category 1: replied w/ New Add",
+    "body": "- owner replied to email and provided new mailing address. Address Updated\nOWNER EMAIL: ",
+    "sort_order": 1
+  },
+  {
+    "collection": "Email - Mailing Inquiry",
+    "section": "Email/Letter Responses",
+    "title": "Category 2: replied same add",
+    "body": "- owner replied to email and confirmed address is correct no changes needed\nOWNER EMAIL: ",
+    "sort_order": 2
+  },
+  {
+    "collection": "Email - Mailing Inquiry",
+    "section": "Email/Letter Responses",
+    "title": "Category 3: replied SOLD",
+    "body": "-  owner replied to the email and said the property has been sold.",
+    "sort_order": 3
+  },
+  {
+    "collection": "Email - Mailing Inquiry",
+    "section": "Letter Additional Notes",
+    "title": "Category 1: Email",
+    "body": "Additionally, a copy of this request will be forwarded to your potential mailing address via postal mail.",
+    "sort_order": 4
+  },
+  {
+    "collection": "Email - Mailing Inquiry",
+    "section": "Letter Additional Notes",
+    "title": "Category 2: Letter",
+    "body": "Please ignore this message if you have already received and responded to our email about this request.",
+    "sort_order": 5
+  },
+
+  {
+    "collection": "C3 Notes - General",
+    "section": "Accomplished",
+    "title": "SAME ADDRESS",
+    "body": "RM-D: \nLR: \n\n- CAD Site has the same mailing address as C3. Acct w/ Email - Status: Accomplished",
+    "sort_order": 1
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Accomplished",
+    "title": "NEW ADDRESS FOUND",
+    "body": "RM-D: \nLR: \nORDER #: \n\n- New Address found in Cad Site \n- STATUS: Accomplished",
+    "sort_order": 2
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Accomplished",
+    "title": "LABEL W/ FWD ADDRESS",
+    "body": "RM-D: \nLR: \nORDER #: \n\n- Label has a FWD Address\n- STATUS: Accomplished",
+    "sort_order": 3
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Accomplished",
+    "title": "RECENTLY UPDATED",
+    "body": "RM-D: \nLR: \n\n- C3 Notes shows address was recently updated. \n- STATUS: Accomplished",
+    "sort_order": 4
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Accomplished",
+    "title": "UNABLE TO FIND ACCT IN CAD",
+    "body": "RM-D: \nLR: \n\n- Unable to Find  Unit Address / Owner Name in Cad Site - w/ Email. - Status: Accomplished",
+    "sort_order": 5
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Accomplished",
+    "title": "NEW OWNER",
+    "body": "RM-D: \nLR: \n\n-Cad Site displays New Owner on Deed \n- Status: Accomplished",
+    "sort_order": 6
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Accomplished",
+    "title": "OWNER REPLIED - SAME ADDRESS",
+    "body": "RM-D: \nLR: \n\n- Owner replied to the info requested Address. Address Updated\n updated - Status: Accomplished",
+    "sort_order": 7
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Accomplished",
+    "title": "OWNER CONFIRMED - SAME ADDRESS",
+    "body": "RM-D: \nLR: \n\n-Owner confirmed the address is correct and no changes are needed.\n- Status: Accomplished",
+    "sort_order": 8
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Accomplished",
+    "title": "NEW OWNER (Deed History)",
+    "body": "RM-D: \nLR: \n\n- CAD Site displays New Owner on the Deed History - Action Taken: Email Sent to Settlement.\n- STATUS: Accomplished",
+    "sort_order": 9
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Outstanding",
+    "title": "SAME ADDRESS - NO EMAIL",
+    "body": "RM-D: \nLR: \n- CAD Site has the similar mailing address as C3. Acct w/o Email - Status: Outstanding",
+    "sort_order": 10
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Outstanding",
+    "title": "CANT LOCATE ACCT IN CAD - NO EMAIL",
+    "body": "RM-D: \nLR: \n\n- Cant Locate Unit Address & Owner Name in CAD Site , Owner has No Email \n- STATUS: Outstanding",
+    "sort_order": 11
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Outstanding",
+    "title": "ASSOCIATION NOT MANAGED",
+    "body": "RM-D: \nLR: \n\nThe account is linked to an association that the Branch no longer manages.\n- STATUS: Outstanding",
+    "sort_order": 12
+  },
+  {
+    "collection": "C3 Notes - General",
+    "section": "Outstanding",
+    "title": "CLOSURE",
+    "body": "RM-D: \nLR: \n\nproperty Address has been placed for closing.\n Status: Outstanding",
+    "sort_order": 13
+  },
+
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Accomplished",
+    "title": "SAME ADDRESS",
+    "body": "RM-D: \nLR: \n\n- CAD Site has the same mailing address as C3. Acct w/ Email - Status: Accomplished",
+    "sort_order": 1
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Accomplished",
+    "title": "NEW ADDRESS FOUND",
+    "body": "RM-D: \nLR: \nORDER #: \n\n- New Address found in Cad Site, Address Updated. \n- STATUS: Accomplished",
+    "sort_order": 2
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Accomplished",
+    "title": "LABEL W/ FWD ADDRESS",
+    "body": "RM-D: \nLR: \nORDER #: \n\n- Label has a FWD Address, Address Updated\n- STATUS: Accomplished",
+    "sort_order": 3
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Accomplished",
+    "title": "RECENTLY UPDATED",
+    "body": "RM-D: \nLR: \n\n- C3 Notes shows address was recently updated. \n- STATUS: Accomplished",
+    "sort_order": 4
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Accomplished",
+    "title": "UNABLE TO FIND ACCT IN CAD",
+    "body": "RM-D: \nLR: \n\n- Unable to Find  Unit Address / Owner Name in Cad Site - w/ Email. - Status: Accomplished",
+    "sort_order": 5
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Accomplished",
+    "title": "NEW OWNER",
+    "body": "RM-D: \nLR: \n\n-Cad Site displays New Owner on Deed \n- Status: Accomplished",
+    "sort_order": 6
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Accomplished",
+    "title": "OWNER REPLIED - SAME ADDRESS",
+    "body": "RM-D: \nLR: \n\n- Owner replied to the info requested Address. Address Updated\n updated - Status: Accomplished",
+    "sort_order": 7
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Accomplished",
+    "title": "OWNER CONFIRMED - SAME ADDRESS",
+    "body": "RM-D: \nLR: \n\n-Owner confirmed the address is correct and no changes are needed.\n- Status: Accomplished",
+    "sort_order": 8
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Accomplished",
+    "title": "NEW OWNER (Deed History)",
+    "body": "RM-D: \nLR: \n\n- CAD Site displays New Owner on the Deed History - Action Taken: Email Sent to Settlement.\n- STATUS: Accomplished",
+    "sort_order": 9
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Outstanding",
+    "title": "SAME ADDRESS - NO EMAIL",
+    "body": "RM-D: \nLR: \n- CAD Site has the similar mailing address as C3. Acct w/o Email - Status: Outstanding",
+    "sort_order": 10
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Outstanding",
+    "title": "CANT LOCATE ACCT IN CAD - NO EMAIL",
+    "body": "RM-D: \nLR: \n\n- Cant Locate Unit Address & Owner Name in CAD Site , Owner has No Email \n- STATUS: Outstanding",
+    "sort_order": 11
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Outstanding",
+    "title": "ASSOCIATION NOT MANAGED",
+    "body": "RM-D: \nLR: \n\nThe account is linked to an association that the Branch no longer manages.\n- STATUS: Outstanding",
+    "sort_order": 12
+  },
+  {
+    "collection": "C3 Notes - CGR",
+    "section": "Outstanding",
+    "title": "CLOSURE",
+    "body": "RM-D: \nLR: \n\nproperty Address has been placed for closing.\n Status: Outstanding",
+    "sort_order": 13
+  }
+]
