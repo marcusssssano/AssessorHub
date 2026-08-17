@@ -32,6 +32,9 @@ export default function ReportsManager() {
   const [editingEntry, setEditingEntry] = useState<ReportEntry | null>(null);
   const [filterText, setFilterText] = useState("");
   const [visibleCounts, setVisibleCounts] = useState<Record<string, number>>({});
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   async function loadEntries() {
     setLoading(true);
@@ -50,6 +53,7 @@ export default function ReportsManager() {
     }
     setLoading(false);
     setVisibleCounts({});
+    setSelectedIds(new Set());
   }
 
   useEffect(() => {
@@ -126,6 +130,35 @@ export default function ReportsManager() {
     const { error } = await supabase.from("report_entries").update(values).eq("id", id);
     if (error) throw error;
     await loadEntries();
+  }
+
+  async function handleBulkDelete() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (!confirm(`Delete ${ids.length} selected entr${ids.length === 1 ? "y" : "ies"}? This cannot be undone.`)) return;
+
+    setBulkDeleting(true);
+    const { error } = await supabase.from("report_entries").delete().in("id", ids);
+    setBulkDeleting(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    await loadEntries();
+  }
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleGroupCollapsed(key: string) {
+    setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
   return (
@@ -224,64 +257,112 @@ export default function ReportsManager() {
             </div>
           </div>
 
+          {selectedIds.size > 0 && (
+            <div className="flex items-center justify-between gap-4 rounded-2xl border border-red-200 bg-red-50 px-5 py-3">
+              <span className="text-sm font-medium text-red-700">
+                {selectedIds.size} selected
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelectedIds(new Set())}
+                  className="rounded-full px-4 py-1.5 text-sm text-slate-500 hover:bg-white transition-colors"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleting}
+                  className="rounded-full bg-red-600 px-4 py-1.5 text-sm text-white font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {bulkDeleting ? "Deleting..." : `Delete Selected (${selectedIds.size})`}
+                </button>
+              </div>
+            </div>
+          )}
+
           {groups.map((group) => {
             const visible = visibleCounts[group.key] ?? PAGE_SIZE;
             const shown = group.items.slice(0, visible);
             const remaining = group.items.length - shown.length;
+            const collapsed = collapsedGroups[group.key] ?? false;
 
             return (
               <div
                 key={group.key}
                 className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm"
               >
-                <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50/50">
-                  <span className="text-sm font-semibold text-[var(--navy-900)]">{group.label}</span>
+                <button
+                  onClick={() => toggleGroupCollapsed(group.key)}
+                  className="flex w-full items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50/50 hover:bg-slate-100/60 transition-colors"
+                >
+                  <span className="flex items-center gap-2 text-sm font-semibold text-[var(--navy-900)]">
+                    <svg
+                      className={`h-4 w-4 text-slate-400 transition-transform ${collapsed ? "-rotate-90" : ""}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                    {group.label}
+                  </span>
                   <span className="rounded-full bg-[var(--accent-light)] px-2.5 py-0.5 text-xs font-medium text-[var(--accent)]">
                     {group.items.length}
                   </span>
-                </div>
+                </button>
 
-                {group.items.length === 0 ? (
-                  <p className="px-5 py-4 text-sm text-slate-400">No entries.</p>
-                ) : (
-                  <>
-                    <ul className="divide-y divide-slate-100">
-                      {shown.map((entry) => (
-                        <li
-                          key={entry.id}
-                          className="flex items-center justify-between gap-4 px-5 py-3 hover:bg-slate-50/60 transition-colors"
+                {!collapsed && (
+                  group.items.length === 0 ? (
+                    <p className="px-5 py-4 text-sm text-slate-400">No entries.</p>
+                  ) : (
+                    <>
+                      <ul className="divide-y divide-slate-100">
+                        {shown.map((entry) => (
+                          <li
+                            key={entry.id}
+                            className="flex items-center justify-between gap-4 px-5 py-3 hover:bg-slate-50/60 transition-colors"
+                          >
+                            <label className="flex min-w-0 items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={selectedIds.has(entry.id)}
+                                onChange={() => toggleSelected(entry.id)}
+                                className="h-4 w-4 shrink-0 rounded border-slate-300 text-[var(--accent)] focus:ring-[var(--accent)]/30"
+                              />
+                              <span className="font-medium text-[var(--navy-900)] truncate">
+                                {entry.reference_file}
+                              </span>
+                            </label>
+                            <div className="shrink-0 flex items-center gap-2 text-sm">
+                              <button
+                                onClick={() => setEditingEntry(entry)}
+                                className="rounded-full px-3 py-1.5 text-[var(--accent)] hover:bg-[var(--accent-light)] transition-colors"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDelete(entry.id, entry.reference_file)}
+                                className="rounded-full px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                      {remaining > 0 && (
+                        <button
+                          onClick={() =>
+                            setVisibleCounts((v) => ({ ...v, [group.key]: visible + PAGE_SIZE }))
+                          }
+                          className="w-full px-5 py-3 text-sm text-[var(--accent)] hover:bg-slate-50 transition-colors border-t border-slate-100"
                         >
-                          <span className="font-medium text-[var(--navy-900)] truncate">
-                            {entry.reference_file}
-                          </span>
-                          <div className="shrink-0 flex items-center gap-2 text-sm">
-                            <button
-                              onClick={() => setEditingEntry(entry)}
-                              className="rounded-full px-3 py-1.5 text-[var(--accent)] hover:bg-[var(--accent-light)] transition-colors"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(entry.id, entry.reference_file)}
-                              className="rounded-full px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                    {remaining > 0 && (
-                      <button
-                        onClick={() =>
-                          setVisibleCounts((v) => ({ ...v, [group.key]: visible + PAGE_SIZE }))
-                        }
-                        className="w-full px-5 py-3 text-sm text-[var(--accent)] hover:bg-slate-50 transition-colors border-t border-slate-100"
-                      >
-                        Show {Math.min(remaining, PAGE_SIZE)} more ({remaining} remaining)
-                      </button>
-                    )}
-                  </>
+                          Show {Math.min(remaining, PAGE_SIZE)} more ({remaining} remaining)
+                        </button>
+                      )}
+                    </>
+                  )
                 )}
               </div>
             );
