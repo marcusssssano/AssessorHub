@@ -26,7 +26,9 @@ export default function PublicReportsViewer() {
       setLoadingAvailable(true);
       const { data, error } = await supabase
         .from("report_entries")
-        .select("activity_month, branch");
+        .select("activity_month, branch")
+        .order("created_at", { ascending: false })
+        .limit(900);
 
       if (error) {
         setError(error.message);

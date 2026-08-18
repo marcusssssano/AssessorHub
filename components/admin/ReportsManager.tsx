@@ -53,7 +53,8 @@ export default function ReportsManager() {
       .select("*")
       .eq("activity_month", month)
       .eq("branch", branch)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(900);
 
     if (error) {
       setError(error.message);

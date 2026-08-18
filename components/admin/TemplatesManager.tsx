@@ -6,6 +6,8 @@ import type { NoteTemplate } from "@/lib/types";
 import TemplateForm, { type TemplateFormValues } from "./TemplateForm";
 
 const MAX_FAVORITES = 15;
+const LIST_LIMIT = 500;
+const SEARCH_LIMIT = 300;
 
 export default function TemplatesManager() {
   const supabase = useMemo(() => createClient(), []);
@@ -16,6 +18,10 @@ export default function TemplatesManager() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
+  const [favoriteCount, setFavoriteCount] = useState(0);
+
+  const [existingCollections, setExistingCollections] = useState<string[]>([]);
+  const [sectionsByCollection, setSectionsByCollection] = useState<Record<string, string[]>>({});
 
   const [renameCollection, setRenameCollection] = useState("");
   const [renameCollectionTo, setRenameCollectionTo] = useState("");
@@ -28,12 +34,24 @@ export default function TemplatesManager() {
 
   async function loadTemplates() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("note_templates")
-      .select("*")
-      .order("collection", { ascending: true })
-      .order("sort_order", { ascending: true })
-      .order("title", { ascending: true });
+    const q = query.trim();
+
+    const request = q
+      ? supabase
+          .from("note_templates")
+          .select("*")
+          .ilike("title", `%${q}%`)
+          .order("title", { ascending: true })
+          .limit(SEARCH_LIMIT)
+      : supabase
+          .from("note_templates")
+          .select("*")
+          .order("collection", { ascending: true })
+          .order("sort_order", { ascending: true })
+          .order("title", { ascending: true })
+          .limit(LIST_LIMIT);
+
+    const { data, error } = await request;
 
     if (error) {
       setError(error.message);
@@ -43,38 +61,51 @@ export default function TemplatesManager() {
     setLoading(false);
   }
 
+  async function loadCollectionsAndFavoriteCount() {
+    const { data } = await supabase
+      .from("note_templates")
+      .select("collection, section")
+      .limit(900);
+
+    const collectionSet = new Set<string>();
+    const sectionMap: Record<string, string[]> = {};
+    for (const row of data ?? []) {
+      collectionSet.add(row.collection);
+      if (row.section) {
+        if (!sectionMap[row.collection]) sectionMap[row.collection] = [];
+        if (!sectionMap[row.collection].includes(row.section)) {
+          sectionMap[row.collection].push(row.section);
+        }
+      }
+    }
+    for (const key in sectionMap) sectionMap[key].sort();
+    setExistingCollections(Array.from(collectionSet).sort());
+    setSectionsByCollection(sectionMap);
+
+    const { count } = await supabase
+      .from("note_templates")
+      .select("id", { count: "exact", head: true })
+      .eq("is_favorite", true);
+    setFavoriteCount(count ?? 0);
+  }
+
   useEffect(() => {
-    loadTemplates();
+    const handle = setTimeout(() => loadTemplates(), 150);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  useEffect(() => {
+    loadCollectionsAndFavoriteCount();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const existingCollections = useMemo(
-    () => Array.from(new Set(templates.map((t) => t.collection))).sort(),
-    [templates]
-  );
-
-  const sectionsByCollection = useMemo(() => {
-    const map: Record<string, string[]> = {};
-    for (const t of templates) {
-      if (!t.section) continue;
-      if (!map[t.collection]) map[t.collection] = [];
-      if (!map[t.collection].includes(t.section)) map[t.collection].push(t.section);
-    }
-    for (const key in map) map[key].sort();
-    return map;
-  }, [templates]);
-
-  const favoriteCount = templates.filter((t) => t.is_favorite).length;
-
-  const filtered = templates.filter((t) =>
-    t.title.toLowerCase().includes(query.trim().toLowerCase())
-  );
 
   async function handleAdd(values: TemplateFormValues) {
     const { error } = await supabase.from("note_templates").insert(values);
     if (error) throw error;
     setShowAddForm(false);
     await loadTemplates();
+    await loadCollectionsAndFavoriteCount();
   }
 
   async function handleEdit(id: string, values: TemplateFormValues) {
@@ -82,6 +113,7 @@ export default function TemplatesManager() {
     if (error) throw error;
     setEditingId(null);
     await loadTemplates();
+    await loadCollectionsAndFavoriteCount();
   }
 
   async function handleDelete(id: string, title: string) {
@@ -92,6 +124,7 @@ export default function TemplatesManager() {
       return;
     }
     await loadTemplates();
+    await loadCollectionsAndFavoriteCount();
   }
 
   async function handleToggleFavorite(t: NoteTemplate) {
@@ -109,6 +142,7 @@ export default function TemplatesManager() {
       return;
     }
     await loadTemplates();
+    await loadCollectionsAndFavoriteCount();
   }
 
   async function handleRenameCollection(e: React.FormEvent) {
@@ -128,6 +162,7 @@ export default function TemplatesManager() {
     setRenameCollection("");
     setRenameCollectionTo("");
     await loadTemplates();
+    await loadCollectionsAndFavoriteCount();
   }
 
   async function handleRenameSection(e: React.FormEvent) {
@@ -149,6 +184,7 @@ export default function TemplatesManager() {
     setRenameSection("");
     setRenameSectionTo("");
     await loadTemplates();
+    await loadCollectionsAndFavoriteCount();
   }
 
   return (
@@ -294,10 +330,10 @@ export default function TemplatesManager() {
       ) : (
         <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
           <p className="px-5 py-3 text-xs font-medium text-slate-400 border-b border-slate-100 bg-slate-50/50">
-            {filtered.length} template{filtered.length === 1 ? "" : "s"} · {favoriteCount}/{MAX_FAVORITES} favorited
+            {templates.length} template{templates.length === 1 ? "" : "s"} · {favoriteCount}/{MAX_FAVORITES} favorited
           </p>
           <ul className="divide-y divide-slate-100">
-            {filtered.map((t) =>
+            {templates.map((t) =>
               editingId === t.id ? (
                 <li key={t.id} className="p-5 bg-[var(--accent-light)]/40">
                   <TemplateForm
