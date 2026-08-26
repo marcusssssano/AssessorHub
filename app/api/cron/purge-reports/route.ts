@@ -17,5 +17,10 @@ export async function GET() {
     return NextResponse.json({ ok: false, error: descriptionsError.message }, { status: 500 });
   }
 
+  const { error: trackerError } = await supabase.rpc("purge_old_tracker_statuses");
+  if (trackerError) {
+    return NextResponse.json({ ok: false, error: trackerError.message }, { status: 500 });
+  }
+
   return NextResponse.json({ ok: true, ranAt: new Date().toISOString() });
 }

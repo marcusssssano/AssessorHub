@@ -39,3 +39,28 @@ export interface ReportEntry {
   created_at: string;
   updated_at: string;
 }
+
+export interface AppUser {
+  id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrackerBranch {
+  id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrackerStatus {
+  id: string;
+  activity_month: string;
+  branch_id: string;
+  completed: boolean;
+  created_at: string;
+  updated_at: string;
+}
