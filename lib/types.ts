@@ -70,3 +70,14 @@ export interface TrackerSettings {
   title: string;
   updated_at: string;
 }
+
+export interface WorkLogEntry {
+  id: string;
+  entry_date: string;
+  return_mail_count: number;
+  completed_tasks: string | null;
+  ongoing_tasks: string | null;
+  next_tasks: string | null;
+  created_at: string;
+  updated_at: string;
+}

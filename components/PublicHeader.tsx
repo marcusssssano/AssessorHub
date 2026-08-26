@@ -4,10 +4,10 @@ import UserBadge from "./UserBadge";
 export default function PublicHeader({
   active,
 }: {
-  active: "links" | "templates" | "reports" | "tracker";
+  active: "links" | "templates" | "reports" | "tracker" | "worklog";
 }) {
   return (
-    <header className="bg-[var(--navy-900)] border-b border-[var(--navy-700)] px-6 py-5 flex items-center justify-between">
+    <header className="bg-[var(--navy-900)] border-b border-[var(--navy-700)] px-6 py-5 flex flex-wrap items-center justify-between gap-y-3">
       <div className="flex items-center gap-2.5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white font-bold text-sm">
           AH
@@ -17,7 +17,7 @@ export default function PublicHeader({
           <UserBadge />
         </h1>
       </div>
-      <nav className="flex items-center gap-2">
+      <nav className="flex flex-wrap items-center gap-2">
         <Link
           href="/links"
           className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
@@ -57,6 +57,16 @@ export default function PublicHeader({
           }`}
         >
           Tracker
+        </Link>
+        <Link
+          href="/worklog"
+          className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+            active === "worklog"
+              ? "border-white/40 text-white bg-white/10"
+              : "border-white/20 text-white/80 hover:text-white hover:border-white/40"
+          }`}
+        >
+          Work Log
         </Link>
         <Link
           href="/admin"

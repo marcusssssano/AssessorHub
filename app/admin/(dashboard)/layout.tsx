@@ -4,8 +4,8 @@ import SignOutButton from "@/components/admin/SignOutButton";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex-1 flex flex-col">
-      <header className="bg-[var(--navy-900)] border-b border-[var(--navy-700)] px-6 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-8">
+      <header className="bg-[var(--navy-900)] border-b border-[var(--navy-700)] px-6 py-5 flex flex-wrap items-center justify-between gap-y-3">
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white font-bold text-sm">
               AH
@@ -14,7 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               AssessorHub Admin
             </h1>
           </div>
-          <nav className="flex items-center gap-1 text-sm">
+          <nav className="flex flex-wrap items-center gap-1 text-sm">
             <Link
               href="/admin"
               className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
@@ -44,6 +44,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
             >
               Mail Tracker
+            </Link>
+            <Link
+              href="/admin/worklog"
+              className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              Work Log
             </Link>
             <Link
               href="/admin/users"
