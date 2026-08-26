@@ -1,33 +1,44 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { computeTimeToFinish, formatDate, statusColor, TONE_COLORS } from "@/lib/tasktracker";
+import { computeTimeToFinish, formatDate, formatLoggedDate, rowAccentColor, statusColor, TONE_COLORS } from "@/lib/tasktracker";
 import type { TaskTrackerEntry } from "@/lib/types";
 
 const WIDTH = 1600;
 const MARGIN = 50;
-const CONTENT_WIDTH = WIDTH - MARGIN * 2;
+const ACCENT_BAR_WIDTH = 5;
+const CONTENT_X = MARGIN + ACCENT_BAR_WIDTH + 10;
+const CONTENT_WIDTH = WIDTH - MARGIN * 2 - ACCENT_BAR_WIDTH - 10;
 const COL_GAP = 16;
 
 const COL_WIDTHS = {
-  task: 370,
-  deadline: 130,
-  ttf: 150,
-  status: 120,
+  task: 330,
+  logged: 105,
+  deadline: 115,
+  ttf: 135,
+  status: 110,
 };
 const NOTE_WIDTH =
-  CONTENT_WIDTH - COL_WIDTHS.task - COL_WIDTHS.deadline - COL_WIDTHS.ttf - COL_WIDTHS.status - COL_GAP * 4;
+  CONTENT_WIDTH -
+  COL_WIDTHS.task -
+  COL_WIDTHS.logged -
+  COL_WIDTHS.deadline -
+  COL_WIDTHS.ttf -
+  COL_WIDTHS.status -
+  COL_GAP * 5;
 
 const NAVY = "#0b1f3f";
 const SLATE = "#64748b";
 const BORDER = "#e2e8f0";
 const ROW_ALT = "#f8fafc";
+const SECTION_BG = "#eef2f7";
 
 const LINE_HEIGHT = 22;
 const BODY_FONT = "400 15px Arial, sans-serif";
 const BOLD_FONT = "700 15px Arial, sans-serif";
 const HEADER_FONT = "700 13px Arial, sans-serif";
 const BADGE_FONT = "700 12px Arial, sans-serif";
+const SECTION_FONT = "700 13px Arial, sans-serif";
 
 function breakLongWord(ctx: CanvasRenderingContext2D, word: string, maxWidth: number): string[] {
   const chunks: string[] = [];
@@ -85,12 +96,16 @@ function paragraphLines(ctx: CanvasRenderingContext2D, raw: string | null, maxWi
   return lines;
 }
 
-interface RowLayout {
-  entry: TaskTrackerEntry;
-  taskLines: string[];
-  noteLines: string[];
-  height: number;
-}
+type Row =
+  | { kind: "section"; label: string; count: number; height: number }
+  | {
+      kind: "data";
+      entry: TaskTrackerEntry;
+      taskLines: string[];
+      noteLines: string[];
+      accent: string;
+      height: number;
+    };
 
 export default function TaskTrackerChart({
   entries,
@@ -103,23 +118,48 @@ export default function TaskTrackerChart({
 
   useEffect(() => {
     const measureCanvas = document.createElement("canvas");
-    const mctx = measureCanvas.getContext("2d");
-    if (!mctx) return;
+    const measureCtx = measureCanvas.getContext("2d");
+    if (!measureCtx) return;
+    const mctx = measureCtx;
 
     const rowPad = 20;
     const rowMinHeight = 52;
+    const sectionHeight = 38;
 
-    const rows: RowLayout[] = entries.map((entry) => {
+    const openEntries = entries.filter((e) => e.status !== "Completed");
+    const doneEntries = entries.filter((e) => e.status === "Completed");
+    const overdueCount = openEntries.filter(
+      (e) => computeTimeToFinish(e.deadline, e.status, e.completed_at).tone === "overdue"
+    ).length;
+
+    function buildDataRow(entry: TaskTrackerEntry): Row {
       mctx.font = BOLD_FONT;
       const taskLines = wrapLines(mctx, entry.task, COL_WIDTHS.task);
       mctx.font = BODY_FONT;
       const noteLines = paragraphLines(mctx, entry.note, NOTE_WIDTH);
       const maxLines = Math.max(1, taskLines.length, noteLines.length);
       const height = Math.max(rowMinHeight, maxLines * LINE_HEIGHT + rowPad);
-      return { entry, taskLines, noteLines, height };
-    });
+      return {
+        kind: "data",
+        entry,
+        taskLines,
+        noteLines,
+        accent: rowAccentColor(entry.status, entry.deadline, entry.completed_at),
+        height,
+      };
+    }
 
-    const headerBandHeight = 92;
+    const rows: Row[] = [];
+    if (openEntries.length > 0) {
+      rows.push({ kind: "section", label: "OPEN TASKS", count: openEntries.length, height: sectionHeight });
+      openEntries.forEach((e) => rows.push(buildDataRow(e)));
+    }
+    if (doneEntries.length > 0) {
+      rows.push({ kind: "section", label: "COMPLETED", count: doneEntries.length, height: sectionHeight });
+      doneEntries.forEach((e) => rows.push(buildDataRow(e)));
+    }
+
+    const headerBandHeight = 110;
     const tableHeaderHeight = 40;
     const contentTop = headerBandHeight + 30;
     const totalRowsHeight = rows.reduce((sum, r) => sum + r.height, 0);
@@ -145,15 +185,34 @@ export default function TaskTrackerChart({
     ctx.fillRect(0, 0, WIDTH, headerBandHeight);
     ctx.fillStyle = "#ffffff";
     ctx.font = "700 30px Arial, sans-serif";
-    ctx.fillText("Task Tracker", MARGIN, 48);
-    ctx.font = "400 16px Arial, sans-serif";
+    ctx.fillText("Task Tracker", MARGIN, 46);
+
+    ctx.font = "400 15px Arial, sans-serif";
     ctx.fillStyle = "#c7d3e8";
     const generatedOn = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-    ctx.fillText(`Generated ${generatedOn} · ${entries.length} task${entries.length === 1 ? "" : "s"}`, MARGIN, 74);
+    ctx.fillText(`Generated ${generatedOn}`, MARGIN, 70);
+
+    ctx.font = "700 15px Arial, sans-serif";
+    const summaryParts = [
+      `${entries.length} Task${entries.length === 1 ? "" : "s"}`,
+      `${overdueCount} Overdue`,
+      `${doneEntries.length} Completed`,
+    ];
+    let sx = MARGIN;
+    summaryParts.forEach((part, i) => {
+      const color = i === 1 && overdueCount > 0 ? "#fca5a5" : i === 2 ? "#86efac" : "#ffffff";
+      ctx.fillStyle = color;
+      ctx.fillText(part, sx, 94);
+      sx += ctx.measureText(part).width + 16;
+      if (i < summaryParts.length - 1) {
+        ctx.fillStyle = "#5b6b8a";
+        ctx.fillText("·", sx - 12, 94);
+      }
+    });
 
     function colX(col: keyof typeof COL_WIDTHS | "note") {
-      const order: (keyof typeof COL_WIDTHS | "note")[] = ["task", "deadline", "ttf", "status", "note"];
-      let x = MARGIN;
+      const order: (keyof typeof COL_WIDTHS | "note")[] = ["task", "logged", "deadline", "ttf", "status", "note"];
+      let x = CONTENT_X;
       for (const c of order) {
         if (c === col) return x;
         x += (c === "note" ? NOTE_WIDTH : COL_WIDTHS[c]) + COL_GAP;
@@ -167,6 +226,7 @@ export default function TaskTrackerChart({
     ctx.font = HEADER_FONT;
     ctx.fillStyle = SLATE;
     ctx.fillText("TASK", colX("task"), y + 24);
+    ctx.fillText("LOGGED", colX("logged"), y + 24);
     ctx.fillText("DEADLINE", colX("deadline"), y + 24);
     ctx.fillText("TIME TO FINISH", colX("ttf"), y + 24);
     ctx.fillText("STATUS", colX("status"), y + 24);
@@ -183,17 +243,33 @@ export default function TaskTrackerChart({
     if (rows.length === 0) {
       ctx.font = BODY_FONT;
       ctx.fillStyle = SLATE;
-      ctx.fillText("No tasks to show.", MARGIN, y + 30);
+      ctx.fillText("No tasks to show.", CONTENT_X, y + 30);
       y += 60;
     }
 
-    rows.forEach((row, i) => {
+    let dataRowIndex = 0;
+    rows.forEach((row) => {
       const rowTop = y;
 
-      if (i % 2 === 1) {
-        ctx.fillStyle = ROW_ALT;
-        ctx.fillRect(MARGIN, rowTop, CONTENT_WIDTH, row.height);
+      if (row.kind === "section") {
+        ctx.fillStyle = SECTION_BG;
+        ctx.fillRect(MARGIN, rowTop, WIDTH - MARGIN * 2, row.height);
+        ctx.font = SECTION_FONT;
+        ctx.fillStyle = "#334155";
+        ctx.fillText(`${row.label} (${row.count})`, CONTENT_X, rowTop + 24);
+        y = rowTop + row.height;
+        dataRowIndex = 0;
+        return;
       }
+
+      if (dataRowIndex % 2 === 1) {
+        ctx.fillStyle = ROW_ALT;
+        ctx.fillRect(MARGIN, rowTop, WIDTH - MARGIN * 2, row.height);
+      }
+      dataRowIndex++;
+
+      ctx.fillStyle = row.accent;
+      ctx.fillRect(MARGIN, rowTop, ACCENT_BAR_WIDTH, row.height);
 
       const textY = rowTop + 24;
 
@@ -202,6 +278,9 @@ export default function TaskTrackerChart({
       row.taskLines.forEach((line, li) => ctx.fillText(line, colX("task"), textY + li * LINE_HEIGHT));
 
       ctx.font = BODY_FONT;
+      ctx.fillStyle = "#334155";
+      ctx.fillText(formatLoggedDate(row.entry.created_at), colX("logged"), textY);
+
       ctx.fillStyle = "#334155";
       ctx.fillText(formatDate(row.entry.deadline), colX("deadline"), textY);
 

@@ -17,6 +17,11 @@ export function formatDate(dateStr: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
+/** Date-only display of when a task was actually logged (created), independent of its deadline. */
+export function formatLoggedDate(createdAt: string): string {
+  return formatDate(createdAt.slice(0, 10));
+}
+
 export type TimeToFinishTone = "overdue" | "today" | "upcoming" | "completed-early" | "completed-late" | "completed-ontime";
 
 export interface TimeToFinish {
@@ -52,6 +57,15 @@ export const TONE_COLORS: Record<TimeToFinishTone, string> = {
   "completed-late": "#d97706",
   "completed-ontime": "#16a34a",
 };
+
+/** Left-accent color for a task row: flags overdue/due-today items regardless of status. */
+export function rowAccentColor(status: TaskStatus, deadline: string, completedAt: string | null): string {
+  if (status === "Completed") return "#16a34a";
+  const ttf = computeTimeToFinish(deadline, status, completedAt);
+  if (ttf.tone === "overdue") return "#dc2626";
+  if (ttf.tone === "today") return "#d97706";
+  return "#cbd5e1";
+}
 
 export function statusColor(status: TaskStatus): string {
   switch (status) {
