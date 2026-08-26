@@ -4,21 +4,27 @@ import { useEffect, useRef } from "react";
 import { WEEKDAY_LABELS, formatDayLabel, formatWeekRange, weekdayDates } from "@/lib/worklog";
 import type { WorkLogEntry } from "@/lib/types";
 
-const WIDTH = 1400;
+const WIDTH = 1600;
 const MARGIN = 50;
 const CONTENT_WIDTH = WIDTH - MARGIN * 2;
-const COLUMN_GAP = 36;
-const COLUMN_WIDTH = (CONTENT_WIDTH - COLUMN_GAP * 2) / 3;
+const LABEL_COL_WIDTH = 190;
+const COL_GAP = 16;
+const DAY_COUNT = 5;
+const DAY_COL_WIDTH = (CONTENT_WIDTH - LABEL_COL_WIDTH - COL_GAP * DAY_COUNT) / DAY_COUNT;
+
 const NAVY = "#0b1f3f";
 const ACCENT = "#2f6fed";
 const ACCENT_LIGHT = "#eaf1ff";
 const SLATE = "#64748b";
-const LINE_HEIGHT = 26;
-const BODY_FONT = "400 18px Arial, sans-serif";
-const LABEL_FONT = "700 14px Arial, sans-serif";
-const DAY_HEADER_FONT = "700 21px Arial, sans-serif";
-const BADGE_FONT = "700 15px Arial, sans-serif";
-const META_FONT = "400 15px Arial, sans-serif";
+const BORDER = "#e2e8f0";
+
+const LINE_HEIGHT = 24;
+const BODY_FONT = "400 16px Arial, sans-serif";
+const ROW_LABEL_FONT = "700 15px Arial, sans-serif";
+const DAY_NAME_FONT = "700 19px Arial, sans-serif";
+const DAY_DATE_FONT = "400 14px Arial, sans-serif";
+const BADGE_FONT = "700 13px Arial, sans-serif";
+const EMPTY_FONT = "400 15px Arial, sans-serif";
 
 const SECTIONS: { key: "completed_tasks" | "ongoing_tasks" | "next_tasks"; label: string; color: string }[] = [
   { key: "completed_tasks", label: "Completed Tasks", color: "#16a34a" },
@@ -26,20 +32,17 @@ const SECTIONS: { key: "completed_tasks" | "ongoing_tasks" | "next_tasks"; label
   { key: "next_tasks", label: "Next Tasks to Process", color: ACCENT },
 ];
 
-interface ColumnLayout {
-  label: string;
-  color: string;
-  lines: string[];
-  height: number;
-}
-
-interface DayLayout {
+interface DayInfo {
   dayName: string;
   dateLabel: string;
   hasEntry: boolean;
   count: number;
-  columns: ColumnLayout[];
-  contentHeight: number;
+}
+
+interface RowLayout {
+  label: string;
+  color: string;
+  cells: string[][];
   height: number;
 }
 
@@ -117,56 +120,36 @@ export default function WeeklyWorkLogChart({
     if (!mctx) return;
 
     const dates = weekdayDates(mondayDate);
-    const dayHeaderHeight = 46;
-    const columnLabelHeight = 30;
-    const noEntryHeight = 30;
-    const dayBlockPadding = 34;
-
-    const days: DayLayout[] = dates.map((date, i) => {
+    const days: DayInfo[] = dates.map((date, i) => {
       const entry = entriesByDate[date];
-      const hasEntry = !!entry;
-
-      mctx.font = BODY_FONT;
-      const columns: ColumnLayout[] = hasEntry
-        ? SECTIONS.map((s) => {
-            const lines = paragraphLines(mctx, entry![s.key], COLUMN_WIDTH);
-            return {
-              label: s.label,
-              color: s.color,
-              lines,
-              height: lines.length > 0 ? columnLabelHeight + lines.length * LINE_HEIGHT : 0,
-            };
-          })
-        : [];
-
-      const contentHeight = Math.max(0, ...columns.map((c) => c.height));
-      const anyTaskText = columns.some((c) => c.lines.length > 0);
-
-      let height = dayHeaderHeight;
-      if (!hasEntry) {
-        height += noEntryHeight;
-      } else if (!anyTaskText) {
-        height += 22;
-      } else {
-        height += contentHeight;
-      }
-      height += dayBlockPadding;
-
       return {
         dayName: WEEKDAY_LABELS[i],
         dateLabel: formatDayLabel(date),
-        hasEntry,
+        hasEntry: !!entry,
         count: entry?.return_mail_count ?? 0,
-        columns,
-        contentHeight,
-        height,
       };
+    });
+
+    const dayHeaderRowHeight = 92;
+    const rowLabelPad = 30;
+    const rowMinHeight = 56;
+
+    mctx.font = BODY_FONT;
+    const rows: RowLayout[] = SECTIONS.map((s) => {
+      const cells = dates.map((date) => {
+        const entry = entriesByDate[date];
+        if (!entry) return [];
+        return paragraphLines(mctx, entry[s.key], DAY_COL_WIDTH);
+      });
+      const maxLines = Math.max(1, ...cells.map((c) => c.length));
+      const height = Math.max(rowMinHeight, rowLabelPad + maxLines * LINE_HEIGHT + 10);
+      return { label: s.label, color: s.color, cells, height };
     });
 
     const headerHeight = 106;
     const contentTop = headerHeight + 34;
-    const totalDaysHeight = days.reduce((sum, d) => sum + d.height, 0);
-    const HEIGHT = contentTop + totalDaysHeight + 30;
+    const totalRowsHeight = rows.reduce((sum, r) => sum + r.height, 0);
+    const HEIGHT = contentTop + dayHeaderRowHeight + totalRowsHeight + 30;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -195,67 +178,98 @@ export default function WeeklyWorkLogChart({
     ctx.fillStyle = "#c7d3e8";
     ctx.fillText(formatWeekRange(mondayDate), MARGIN, 84);
 
-    // Days
-    let y = contentTop;
-    days.forEach((day, i) => {
-      const blockTop = y;
+    function dayColX(i: number) {
+      return MARGIN + LABEL_COL_WIDTH + COL_GAP + i * (DAY_COL_WIDTH + COL_GAP);
+    }
 
-      // Day header row
-      ctx.font = DAY_HEADER_FONT;
+    // Day header row
+    const headerRowTop = contentTop;
+    days.forEach((day, i) => {
+      const x = dayColX(i);
+      ctx.font = DAY_NAME_FONT;
       ctx.fillStyle = NAVY;
-      ctx.fillText(`${day.dayName.toUpperCase()} · ${day.dateLabel}`, MARGIN, y + 18);
+      ctx.fillText(day.dayName.toUpperCase(), x, headerRowTop + 22);
+
+      ctx.font = DAY_DATE_FONT;
+      ctx.fillStyle = SLATE;
+      ctx.fillText(day.dateLabel, x, headerRowTop + 42);
 
       if (day.hasEntry) {
-        const badgeText = `${day.count} Return Mail Processed`;
+        const badgeText = `${day.count} processed`;
         ctx.font = BADGE_FONT;
-        const badgeWidth = ctx.measureText(badgeText).width + 30;
-        const badgeX = WIDTH - MARGIN - badgeWidth;
+        const badgeWidth = Math.min(DAY_COL_WIDTH, ctx.measureText(badgeText).width + 22);
         ctx.fillStyle = ACCENT_LIGHT;
-        roundRect(ctx, badgeX, y - 6, badgeWidth, 30, 15);
+        roundRect(ctx, x, headerRowTop + 52, badgeWidth, 26, 13);
         ctx.fill();
         ctx.fillStyle = ACCENT;
-        ctx.fillText(badgeText, badgeX + 15, y + 15);
-      }
-
-      const sectionTop = y + dayHeaderHeight;
-
-      if (!day.hasEntry) {
-        ctx.font = META_FONT;
-        ctx.fillStyle = SLATE;
-        ctx.fillText("No entry logged.", MARGIN, sectionTop + 6);
-      } else if (day.contentHeight === 0) {
-        ctx.font = META_FONT;
-        ctx.fillStyle = SLATE;
-        ctx.fillText(`${day.count} return mail processed. No task notes.`, MARGIN, sectionTop + 6);
+        ctx.fillText(badgeText, x + 11, headerRowTop + 69);
       } else {
-        day.columns.forEach((col, ci) => {
-          if (col.lines.length === 0) return;
-          const colX = MARGIN + ci * (COLUMN_WIDTH + COLUMN_GAP);
-
-          ctx.font = LABEL_FONT;
-          ctx.fillStyle = col.color;
-          ctx.fillText(col.label.toUpperCase(), colX, sectionTop + 15);
-
-          ctx.font = BODY_FONT;
-          ctx.fillStyle = NAVY;
-          col.lines.forEach((line, li) => {
-            ctx.fillText(line, colX, sectionTop + columnLabelHeight + 15 + li * LINE_HEIGHT);
-          });
-        });
-      }
-
-      y = blockTop + day.height;
-
-      // Divider between days
-      if (i < days.length - 1) {
-        ctx.strokeStyle = "#e2e8f0";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(MARGIN, y - dayBlockPadding / 2);
-        ctx.lineTo(WIDTH - MARGIN, y - dayBlockPadding / 2);
-        ctx.stroke();
+        ctx.font = EMPTY_FONT;
+        ctx.fillStyle = SLATE;
+        ctx.fillText("No entry", x, headerRowTop + 69);
       }
     });
+
+    // Divider under day header row
+    let y = contentTop + dayHeaderRowHeight;
+    ctx.strokeStyle = BORDER;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(MARGIN, y);
+    ctx.lineTo(WIDTH - MARGIN, y);
+    ctx.stroke();
+
+    // Task rows
+    rows.forEach((row) => {
+      const rowTop = y;
+
+      ctx.font = ROW_LABEL_FONT;
+      ctx.fillStyle = row.color;
+      const labelLines = wrapLines(ctx, row.label.toUpperCase(), LABEL_COL_WIDTH - 10);
+      labelLines.forEach((line, li) => {
+        ctx.fillText(line, MARGIN, rowTop + 24 + li * 19);
+      });
+
+      row.cells.forEach((lines, i) => {
+        const x = dayColX(i);
+        if (lines.length === 0) {
+          ctx.font = EMPTY_FONT;
+          ctx.fillStyle = "#cbd5e1";
+          ctx.fillText("—", x, rowTop + 24);
+          return;
+        }
+        ctx.font = BODY_FONT;
+        ctx.fillStyle = NAVY;
+        lines.forEach((line, li) => {
+          ctx.fillText(line, x, rowTop + 24 + li * LINE_HEIGHT);
+        });
+      });
+
+      y = rowTop + row.height;
+
+      ctx.strokeStyle = BORDER;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(MARGIN, y);
+      ctx.lineTo(WIDTH - MARGIN, y);
+      ctx.stroke();
+    });
+
+    // Vertical separators between day columns (and label column)
+    ctx.strokeStyle = BORDER;
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= DAY_COUNT; i++) {
+      const x =
+        i === 0
+          ? MARGIN + LABEL_COL_WIDTH + COL_GAP / 2
+          : i === DAY_COUNT
+            ? dayColX(DAY_COUNT - 1) + DAY_COL_WIDTH + COL_GAP / 2
+            : dayColX(i) - COL_GAP / 2;
+      ctx.beginPath();
+      ctx.moveTo(x, contentTop);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
   }, [mondayDate, entriesByDate]);
 
   function handleDownload() {
