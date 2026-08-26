@@ -1,12 +1,19 @@
+import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import PublicWorkLogViewer from "@/components/PublicWorkLogViewer";
 
 export default function WorkLogPage() {
   return (
     <div className="flex-1 flex flex-col">
-      <PublicHeader active="worklog" />
+      <PublicHeader active="reports" />
 
       <main className="flex-1 flex flex-col items-center px-6 py-16 gap-8">
+        <Link
+          href="/reports"
+          className="self-start ml-[max(1.5rem,calc(50%-32rem))] text-sm text-[var(--accent)] hover:underline"
+        >
+          ← Back to Reports
+        </Link>
         <div className="flex flex-col items-center gap-2 text-center">
           <h2 className="text-2xl font-semibold text-[var(--navy-900)]">
             Weekly Work Log
