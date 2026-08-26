@@ -4,14 +4,16 @@ import { useEffect, useRef } from "react";
 import { WEEKDAY_LABELS, formatDayLabel, formatWeekRange, weekdayDates } from "@/lib/worklog";
 import type { WorkLogEntry } from "@/lib/types";
 
-const WIDTH = 900;
-const MARGIN = 40;
+const WIDTH = 1400;
+const MARGIN = 50;
 const CONTENT_WIDTH = WIDTH - MARGIN * 2;
+const COLUMN_GAP = 36;
+const COLUMN_WIDTH = (CONTENT_WIDTH - COLUMN_GAP * 2) / 3;
 const NAVY = "#0b1f3f";
 const ACCENT = "#2f6fed";
 const ACCENT_LIGHT = "#eaf1ff";
 const SLATE = "#64748b";
-const LINE_HEIGHT = 19;
+const LINE_HEIGHT = 21;
 
 const SECTIONS: { key: "completed_tasks" | "ongoing_tasks" | "next_tasks"; label: string; color: string }[] = [
   { key: "completed_tasks", label: "Completed Tasks", color: "#16a34a" },
@@ -19,15 +21,11 @@ const SECTIONS: { key: "completed_tasks" | "ongoing_tasks" | "next_tasks"; label
   { key: "next_tasks", label: "Next Tasks to Process", color: ACCENT },
 ];
 
-interface BulletLine {
-  text: string;
-  first: boolean;
-}
-
-interface SectionLayout {
+interface ColumnLayout {
   label: string;
   color: string;
-  bullets: BulletLine[];
+  lines: string[];
+  height: number;
 }
 
 interface DayLayout {
@@ -35,8 +33,25 @@ interface DayLayout {
   dateLabel: string;
   hasEntry: boolean;
   count: number;
-  sections: SectionLayout[];
+  columns: ColumnLayout[];
+  contentHeight: number;
   height: number;
+}
+
+function breakLongWord(ctx: CanvasRenderingContext2D, word: string, maxWidth: number): string[] {
+  const chunks: string[] = [];
+  let chunk = "";
+  for (const char of word) {
+    const testChunk = chunk + char;
+    if (ctx.measureText(testChunk).width > maxWidth && chunk) {
+      chunks.push(chunk);
+      chunk = char;
+    } else {
+      chunk = testChunk;
+    }
+  }
+  if (chunk) chunks.push(chunk);
+  return chunks;
 }
 
 function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
@@ -44,6 +59,16 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number
   let line = "";
   const lines: string[] = [];
   for (const word of words) {
+    if (ctx.measureText(word).width > maxWidth) {
+      if (line) {
+        lines.push(line);
+        line = "";
+      }
+      const pieces = breakLongWord(ctx, word, maxWidth);
+      pieces.slice(0, -1).forEach((p) => lines.push(p));
+      line = pieces[pieces.length - 1] ?? "";
+      continue;
+    }
     const testLine = line ? `${line} ${word}` : word;
     if (ctx.measureText(testLine).width > maxWidth && line) {
       lines.push(line);
@@ -56,18 +81,18 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number
   return lines;
 }
 
-function bulletLinesFor(ctx: CanvasRenderingContext2D, raw: string | null, maxWidth: number): BulletLine[] {
+/** Free-form paragraphs: preserves the user's own line breaks, no auto-bulleting. */
+function paragraphLines(ctx: CanvasRenderingContext2D, raw: string | null, maxWidth: number): string[] {
   if (!raw || !raw.trim()) return [];
-  const items = raw
+  const paragraphs = raw
     .split("\n")
     .map((s) => s.trim())
     .filter(Boolean);
-  const result: BulletLine[] = [];
-  for (const item of items) {
-    const wrapped = wrapLines(ctx, item, maxWidth);
-    wrapped.forEach((w, i) => result.push({ text: w, first: i === 0 }));
+  const lines: string[] = [];
+  for (const p of paragraphs) {
+    lines.push(...wrapLines(ctx, p, maxWidth));
   }
-  return result;
+  return lines;
 }
 
 export default function WeeklyWorkLogChart({
@@ -87,51 +112,54 @@ export default function WeeklyWorkLogChart({
     if (!mctx) return;
 
     const dates = weekdayDates(mondayDate);
-    const bulletMaxWidth = CONTENT_WIDTH - 40;
-
-    const dayHeaderHeight = 34;
-    const sectionLabelHeight = 20;
-    const sectionGap = 10;
-    const dayBlockGap = 26;
-    const noEntryHeight = 22;
+    const dayHeaderHeight = 40;
+    const columnLabelHeight = 24;
+    const noEntryHeight = 26;
+    const dayBlockPadding = 30;
 
     const days: DayLayout[] = dates.map((date, i) => {
       const entry = entriesByDate[date];
       const hasEntry = !!entry;
 
-      mctx.font = "500 14px Arial, sans-serif";
-      const sections: SectionLayout[] = hasEntry
-        ? SECTIONS.map((s) => ({
-            label: s.label,
-            color: s.color,
-            bullets: bulletLinesFor(mctx, entry![s.key], bulletMaxWidth),
-          })).filter((s) => s.bullets.length > 0)
+      mctx.font = "400 15px Arial, sans-serif";
+      const columns: ColumnLayout[] = hasEntry
+        ? SECTIONS.map((s) => {
+            const lines = paragraphLines(mctx, entry![s.key], COLUMN_WIDTH);
+            return {
+              label: s.label,
+              color: s.color,
+              lines,
+              height: lines.length > 0 ? columnLabelHeight + lines.length * LINE_HEIGHT : 0,
+            };
+          })
         : [];
+
+      const contentHeight = Math.max(0, ...columns.map((c) => c.height));
+      const anyTaskText = columns.some((c) => c.lines.length > 0);
 
       let height = dayHeaderHeight;
       if (!hasEntry) {
         height += noEntryHeight;
-      } else if (sections.length === 0) {
-        height += 20;
+      } else if (!anyTaskText) {
+        height += 22;
       } else {
-        sections.forEach((s) => {
-          height += sectionLabelHeight + s.bullets.length * LINE_HEIGHT + sectionGap;
-        });
+        height += contentHeight;
       }
-      height += dayBlockGap;
+      height += dayBlockPadding;
 
       return {
         dayName: WEEKDAY_LABELS[i],
         dateLabel: formatDayLabel(date),
         hasEntry,
         count: entry?.return_mail_count ?? 0,
-        sections,
+        columns,
+        contentHeight,
         height,
       };
     });
 
-    const headerHeight = 96;
-    const contentTop = headerHeight + 30;
+    const headerHeight = 106;
+    const contentTop = headerHeight + 34;
     const totalDaysHeight = days.reduce((sum, d) => sum + d.height, 0);
     const HEIGHT = contentTop + totalDaysHeight + 30;
 
@@ -156,11 +184,11 @@ export default function WeeklyWorkLogChart({
     ctx.fillStyle = NAVY;
     ctx.fillRect(0, 0, WIDTH, headerHeight);
     ctx.fillStyle = "#ffffff";
-    ctx.font = "700 28px Arial, sans-serif";
-    ctx.fillText("Weekly Work Log", MARGIN, 46);
-    ctx.font = "400 15px Arial, sans-serif";
+    ctx.font = "700 32px Arial, sans-serif";
+    ctx.fillText("Weekly Work Log", MARGIN, 52);
+    ctx.font = "400 17px Arial, sans-serif";
     ctx.fillStyle = "#c7d3e8";
-    ctx.fillText(formatWeekRange(mondayDate), MARGIN, 74);
+    ctx.fillText(formatWeekRange(mondayDate), MARGIN, 82);
 
     // Days
     let y = contentTop;
@@ -168,50 +196,46 @@ export default function WeeklyWorkLogChart({
       const blockTop = y;
 
       // Day header row
-      ctx.font = "700 16px Arial, sans-serif";
+      ctx.font = "700 18px Arial, sans-serif";
       ctx.fillStyle = NAVY;
-      ctx.fillText(`${day.dayName.toUpperCase()} · ${day.dateLabel}`, MARGIN, y + 14);
+      ctx.fillText(`${day.dayName.toUpperCase()} · ${day.dateLabel}`, MARGIN, y + 16);
 
       if (day.hasEntry) {
         const badgeText = `${day.count} Return Mail Processed`;
-        ctx.font = "700 13px Arial, sans-serif";
-        const badgeWidth = ctx.measureText(badgeText).width + 24;
+        ctx.font = "700 14px Arial, sans-serif";
+        const badgeWidth = ctx.measureText(badgeText).width + 26;
         const badgeX = WIDTH - MARGIN - badgeWidth;
         ctx.fillStyle = ACCENT_LIGHT;
-        roundRect(ctx, badgeX, y - 4, badgeWidth, 24, 12);
+        roundRect(ctx, badgeX, y - 4, badgeWidth, 26, 13);
         ctx.fill();
         ctx.fillStyle = ACCENT;
-        ctx.fillText(badgeText, badgeX + 12, y + 13);
+        ctx.fillText(badgeText, badgeX + 13, y + 15);
       }
 
-      let sy = y + dayHeaderHeight;
+      const sectionTop = y + dayHeaderHeight;
 
       if (!day.hasEntry) {
-        ctx.font = "400 13px Arial, sans-serif";
+        ctx.font = "400 14px Arial, sans-serif";
         ctx.fillStyle = SLATE;
-        ctx.fillText("No entry logged.", MARGIN, sy + 4);
-      } else if (day.sections.length === 0) {
-        ctx.font = "400 13px Arial, sans-serif";
+        ctx.fillText("No entry logged.", MARGIN, sectionTop + 6);
+      } else if (day.contentHeight === 0) {
+        ctx.font = "400 14px Arial, sans-serif";
         ctx.fillStyle = SLATE;
-        ctx.fillText(`${day.count} return mail processed. No task notes.`, MARGIN, sy + 4);
+        ctx.fillText(`${day.count} return mail processed. No task notes.`, MARGIN, sectionTop + 6);
       } else {
-        day.sections.forEach((section) => {
-          ctx.font = "700 12px Arial, sans-serif";
-          ctx.fillStyle = section.color;
-          ctx.fillText(section.label.toUpperCase(), MARGIN, sy + 12);
-          sy += sectionLabelHeight;
+        day.columns.forEach((col, ci) => {
+          if (col.lines.length === 0) return;
+          const colX = MARGIN + ci * (COLUMN_WIDTH + COLUMN_GAP);
 
-          ctx.font = "400 13.5px Arial, sans-serif";
-          section.bullets.forEach((line) => {
-            if (line.first) {
-              ctx.fillStyle = section.color;
-              ctx.fillText("•", MARGIN + 4, sy + 12);
-            }
-            ctx.fillStyle = NAVY;
-            ctx.fillText(line.text, MARGIN + 20, sy + 12);
-            sy += LINE_HEIGHT;
+          ctx.font = "700 13px Arial, sans-serif";
+          ctx.fillStyle = col.color;
+          ctx.fillText(col.label.toUpperCase(), colX, sectionTop + 14);
+
+          ctx.font = "400 15px Arial, sans-serif";
+          ctx.fillStyle = NAVY;
+          col.lines.forEach((line, li) => {
+            ctx.fillText(line, colX, sectionTop + columnLabelHeight + 14 + li * LINE_HEIGHT);
           });
-          sy += sectionGap;
         });
       }
 
@@ -222,8 +246,8 @@ export default function WeeklyWorkLogChart({
         ctx.strokeStyle = "#e2e8f0";
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(MARGIN, y - dayBlockGap / 2);
-        ctx.lineTo(WIDTH - MARGIN, y - dayBlockGap / 2);
+        ctx.moveTo(MARGIN, y - dayBlockPadding / 2);
+        ctx.lineTo(WIDTH - MARGIN, y - dayBlockPadding / 2);
         ctx.stroke();
       }
     });

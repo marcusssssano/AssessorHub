@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   currentISOWeek,
-  dateToISOWeek,
   formatDayLabel,
   mondayOfISOWeek,
   WEEKDAY_LABELS,
@@ -63,6 +62,12 @@ export default function WorkLogManager() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [week]);
 
+  useEffect(() => {
+    // Keep the form's selected date inside the currently selected report week.
+    setFormDate((prev) => (dates.includes(prev) ? prev : dates[0]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mondayDate]);
+
   function loadIntoForm(entry: WorkLogEntry | undefined, date: string) {
     setFormDate(date);
     setReturnMailCount(String(entry?.return_mail_count ?? 0));
@@ -98,6 +103,10 @@ export default function WorkLogManager() {
       setError("Select a date.");
       return;
     }
+    if (!dates.includes(formDate)) {
+      setError("Selected date must be a weekday within the chosen report week.");
+      return;
+    }
     if (!Number.isFinite(n) || n < 0) {
       setError("Enter a valid number of return mail processed.");
       return;
@@ -121,12 +130,7 @@ export default function WorkLogManager() {
       return;
     }
 
-    const savedWeek = dateToISOWeek(new Date(formDate + "T00:00:00Z"));
-    if (savedWeek !== week) {
-      setWeek(savedWeek);
-    } else {
-      await loadWeek();
-    }
+    await loadWeek();
   }
 
   async function handleDelete(date: string) {
@@ -165,7 +169,9 @@ export default function WorkLogManager() {
               <input
                 type="date"
                 value={formDate}
-                onChange={(e) => setFormDate(e.target.value)}
+                min={dates[0]}
+                max={dates[4]}
+                onChange={(e) => e.target.value && setFormDate(e.target.value)}
                 className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
               />
             </div>
