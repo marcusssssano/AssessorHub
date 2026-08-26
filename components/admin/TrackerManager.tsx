@@ -21,6 +21,11 @@ export default function TrackerManager() {
   const [loadingStatuses, setLoadingStatuses] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [title, setTitle] = useState("CSSC Return Mail Tracker");
+  const [loadingTitle, setLoadingTitle] = useState(true);
+  const [savingTitle, setSavingTitle] = useState(false);
+  const [titleSaved, setTitleSaved] = useState(false);
+
   async function loadBranches() {
     setLoadingBranches(true);
     const { data, error } = await supabase
@@ -58,8 +63,23 @@ export default function TrackerManager() {
     setLoadingStatuses(false);
   }
 
+  async function loadTitle() {
+    setLoadingTitle(true);
+    const { data, error } = await supabase
+      .from("tracker_settings")
+      .select("title")
+      .eq("id", "00000000-0000-0000-0000-000000000001")
+      .maybeSingle();
+
+    if (!error && data) {
+      setTitle(data.title);
+    }
+    setLoadingTitle(false);
+  }
+
   useEffect(() => {
     loadBranches();
+    loadTitle();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -67,6 +87,24 @@ export default function TrackerManager() {
     loadStatuses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month]);
+
+  async function handleSaveTitle() {
+    if (!title.trim()) return;
+    setSavingTitle(true);
+    setTitleSaved(false);
+    const { error } = await supabase
+      .from("tracker_settings")
+      .update({ title: title.trim() })
+      .eq("id", "00000000-0000-0000-0000-000000000001");
+    setSavingTitle(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setTitleSaved(true);
+    setTimeout(() => setTitleSaved(false), 2000);
+  }
 
   async function handleAddBranch(e: React.FormEvent) {
     e.preventDefault();
@@ -139,6 +177,29 @@ export default function TrackerManager() {
   return (
     <div className="flex flex-col gap-8">
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-medium text-slate-500">Report Title</label>
+          {loadingTitle ? (
+            <p className="text-sm text-slate-400">Loading...</p>
+          ) : (
+            <div className="flex items-center gap-3">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+              />
+              <button
+                onClick={handleSaveTitle}
+                disabled={savingTitle}
+                className="shrink-0 rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors disabled:opacity-50"
+              >
+                {savingTitle ? "Saving..." : "Save"}
+              </button>
+              {titleSaved && <span className="text-sm text-emerald-600">Saved!</span>}
+            </div>
+          )}
+        </div>
+
         <div className="flex flex-col gap-1.5 w-56">
           <label className="text-xs font-medium text-slate-500">Activity Month</label>
           <input
@@ -242,11 +303,11 @@ export default function TrackerManager() {
         </p>
       ) : (
         <>
-          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-            <p className="px-5 py-3 text-xs font-medium text-slate-400 border-b border-slate-100 bg-slate-50/50">
+          <details className="rounded-2xl border border-slate-200 bg-white shadow-sm" open>
+            <summary className="cursor-pointer select-none px-5 py-3 text-sm font-semibold text-[var(--navy-900)]">
               Toggle status for {monthToInputValue(month)}
-            </p>
-            <ul className="divide-y divide-slate-100">
+            </summary>
+            <ul className="border-t border-slate-100 divide-y divide-slate-100">
               {branches.map((b) => {
                 const completed = !!statuses[b.id];
                 return (
@@ -270,12 +331,13 @@ export default function TrackerManager() {
                 );
               })}
             </ul>
-          </div>
+          </details>
 
           <TrackerChart
             activityMonth={month}
             branches={branches}
             statuses={statuses}
+            title={title}
             fileNamePrefix="CSSC-Return-Mail-Tracker"
           />
         </>

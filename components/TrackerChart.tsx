@@ -15,25 +15,32 @@ export default function TrackerChart({
   activityMonth,
   branches,
   statuses,
+  title,
   fileNamePrefix,
 }: {
   activityMonth: string;
   branches: TrackerBranch[];
   statuses: Record<string, boolean>;
+  title?: string;
   fileNamePrefix?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  const headerHeight = 90;
-  const tableTop = headerHeight + 55;
-  const contentHeight = Math.max(branches.length * ROW_HEIGHT + 40, 320);
-  const HEIGHT = headerHeight + contentHeight + 50;
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    const fullTitle = `${title?.trim() || "CSSC Return Mail Tracker"} - ${formatMonth(activityMonth)} Report`;
+    ctx.font = "700 26px Arial, sans-serif";
+    const titleLines = wrapLines(ctx, fullTitle, WIDTH - 80);
+    const titleLineHeight = 32;
+
+    const headerHeight = 40 + titleLines.length * titleLineHeight;
+    const tableTop = headerHeight + 55;
+    const contentHeight = Math.max(branches.length * ROW_HEIGHT + 40, 320);
+    const HEIGHT = headerHeight + contentHeight + 50;
 
     const scale = 2;
     canvas.width = WIDTH * scale;
@@ -52,7 +59,9 @@ export default function TrackerChart({
     ctx.fillRect(0, 0, WIDTH, headerHeight);
     ctx.fillStyle = "#ffffff";
     ctx.font = "700 26px Arial, sans-serif";
-    ctx.fillText(`CSSC Return Mail Tracker - ${formatMonth(activityMonth)} Report`, 40, 55);
+    titleLines.forEach((line, i) => {
+      ctx.fillText(line, 40, 42 + i * titleLineHeight);
+    });
 
     const total = branches.length;
     const completedCount = branches.filter((b) => statuses[b.id]).length;
@@ -161,24 +170,29 @@ export default function TrackerChart({
       ctx.fillText(`${completedPct}%`, cx, cy + 11);
       ctx.textAlign = "left";
 
-      // Legend
-      const legendY = cy + outerR + 40;
+      // Legend (stacked, larger text)
+      const legendFont = "700 20px Arial, sans-serif";
+      const legendLineHeight = 32;
+      const legendRow1Y = cy + outerR + 46;
+      const legendRow2Y = legendRow1Y + legendLineHeight;
+
+      ctx.textAlign = "left";
       ctx.beginPath();
-      ctx.arc(cx - 90, legendY, 6, 0, 2 * Math.PI);
+      ctx.arc(cx - 88, legendRow1Y, 8, 0, 2 * Math.PI);
       ctx.fillStyle = COMPLETE;
       ctx.fill();
-      ctx.font = "600 13px Arial, sans-serif";
+      ctx.font = legendFont;
       ctx.fillStyle = NAVY;
-      ctx.fillText(`Completed ${completedPct}%`, cx - 78, legendY + 4);
+      ctx.fillText(`Completed ${completedPct}%`, cx - 72, legendRow1Y + 7);
 
       ctx.beginPath();
-      ctx.arc(cx + 40, legendY, 6, 0, 2 * Math.PI);
+      ctx.arc(cx - 88, legendRow2Y, 8, 0, 2 * Math.PI);
       ctx.fillStyle = NOT_STARTED;
       ctx.fill();
       ctx.fillStyle = NAVY;
-      ctx.fillText(`Not Started ${notStartedPct}%`, cx + 52, legendY + 4);
+      ctx.fillText(`Not Started ${notStartedPct}%`, cx - 72, legendRow2Y + 7);
     }
-  }, [activityMonth, branches, statuses, headerHeight, tableTop, contentHeight, HEIGHT]);
+  }, [activityMonth, branches, statuses, title]);
 
   function handleDownload() {
     const canvas = canvasRef.current;
@@ -206,4 +220,22 @@ export default function TrackerChart({
       </button>
     </div>
   );
+}
+
+function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const words = text.split(" ");
+  let line = "";
+  const lines: string[] = [];
+
+  for (const word of words) {
+    const testLine = line ? `${line} ${word}` : word;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
 }

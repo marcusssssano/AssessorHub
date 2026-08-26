@@ -64,3 +64,9 @@ export interface TrackerStatus {
   created_at: string;
   updated_at: string;
 }
+
+export interface TrackerSettings {
+  id: string;
+  title: string;
+  updated_at: string;
+}

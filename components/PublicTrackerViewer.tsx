@@ -11,26 +11,35 @@ export default function PublicTrackerViewer() {
   const [month, setMonth] = useState(currentMonth());
   const [branches, setBranches] = useState<TrackerBranch[]>([]);
   const [statuses, setStatuses] = useState<Record<string, boolean>>({});
+  const [title, setTitle] = useState("CSSC Return Mail Tracker");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [{ data: branchData, error: branchErr }, { data: statusData, error: statusErr }] =
-        await Promise.all([
-          supabase
-            .from("tracker_branches")
-            .select("*")
-            .order("sort_order", { ascending: true })
-            .order("name", { ascending: true })
-            .limit(500),
-          supabase
-            .from("tracker_statuses")
-            .select("branch_id, completed")
-            .eq("activity_month", month)
-            .limit(500),
-        ]);
+      const [
+        { data: branchData, error: branchErr },
+        { data: statusData, error: statusErr },
+        { data: settingsData },
+      ] = await Promise.all([
+        supabase
+          .from("tracker_branches")
+          .select("*")
+          .order("sort_order", { ascending: true })
+          .order("name", { ascending: true })
+          .limit(500),
+        supabase
+          .from("tracker_statuses")
+          .select("branch_id, completed")
+          .eq("activity_month", month)
+          .limit(500),
+        supabase
+          .from("tracker_settings")
+          .select("title")
+          .eq("id", "00000000-0000-0000-0000-000000000001")
+          .maybeSingle(),
+      ]);
 
       if (branchErr || statusErr) {
         setError((branchErr ?? statusErr)!.message);
@@ -39,6 +48,7 @@ export default function PublicTrackerViewer() {
         const map: Record<string, boolean> = {};
         for (const row of statusData ?? []) map[row.branch_id] = row.completed;
         setStatuses(map);
+        if (settingsData) setTitle(settingsData.title);
       }
       setLoading(false);
     }
@@ -77,6 +87,7 @@ export default function PublicTrackerViewer() {
           activityMonth={month}
           branches={branches}
           statuses={statuses}
+          title={title}
           fileNamePrefix="CSSC-Return-Mail-Tracker"
         />
       )}
