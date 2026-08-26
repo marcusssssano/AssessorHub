@@ -23,8 +23,9 @@ const BODY_FONT = "400 16px Arial, sans-serif";
 const ROW_LABEL_FONT = "700 15px Arial, sans-serif";
 const DAY_NAME_FONT = "700 19px Arial, sans-serif";
 const DAY_DATE_FONT = "400 14px Arial, sans-serif";
-const BADGE_FONT = "700 13px Arial, sans-serif";
+const COUNT_FONT = "700 22px Arial, sans-serif";
 const EMPTY_FONT = "400 15px Arial, sans-serif";
+const COUNT_ROW_HEIGHT = 56;
 
 const SECTIONS: { key: "completed_tasks" | "ongoing_tasks" | "next_tasks"; label: string; color: string }[] = [
   { key: "completed_tasks", label: "Completed Tasks", color: "#16a34a" },
@@ -149,7 +150,7 @@ export default function WeeklyWorkLogChart({
     const headerHeight = 106;
     const contentTop = headerHeight + 34;
     const totalRowsHeight = rows.reduce((sum, r) => sum + r.height, 0);
-    const HEIGHT = contentTop + dayHeaderRowHeight + totalRowsHeight + 30;
+    const HEIGHT = contentTop + dayHeaderRowHeight + COUNT_ROW_HEIGHT + totalRowsHeight + 30;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -194,19 +195,10 @@ export default function WeeklyWorkLogChart({
       ctx.fillStyle = SLATE;
       ctx.fillText(day.dateLabel, x, headerRowTop + 42);
 
-      if (day.hasEntry) {
-        const badgeText = `${day.count} processed`;
-        ctx.font = BADGE_FONT;
-        const badgeWidth = Math.min(DAY_COL_WIDTH, ctx.measureText(badgeText).width + 22);
-        ctx.fillStyle = ACCENT_LIGHT;
-        roundRect(ctx, x, headerRowTop + 52, badgeWidth, 26, 13);
-        ctx.fill();
-        ctx.fillStyle = ACCENT;
-        ctx.fillText(badgeText, x + 11, headerRowTop + 69);
-      } else {
+      if (!day.hasEntry) {
         ctx.font = EMPTY_FONT;
         ctx.fillStyle = SLATE;
-        ctx.fillText("No entry", x, headerRowTop + 69);
+        ctx.fillText("No entry", x, headerRowTop + 66);
       }
     });
 
@@ -218,6 +210,42 @@ export default function WeeklyWorkLogChart({
     ctx.moveTo(MARGIN, y);
     ctx.lineTo(WIDTH - MARGIN, y);
     ctx.stroke();
+
+    // "# of Return Mail Processed" row
+    {
+      const rowTop = y;
+      ctx.font = ROW_LABEL_FONT;
+      ctx.fillStyle = ACCENT;
+      const labelLines = wrapLines(ctx, "# OF RETURN MAIL PROCESSED", LABEL_COL_WIDTH - 10);
+      labelLines.forEach((line, li) => {
+        ctx.fillText(line, MARGIN, rowTop + 24 + li * 19);
+      });
+
+      days.forEach((day, i) => {
+        const x = dayColX(i);
+        if (!day.hasEntry) {
+          ctx.font = EMPTY_FONT;
+          ctx.fillStyle = "#cbd5e1";
+          ctx.fillText("—", x, rowTop + 34);
+          return;
+        }
+        ctx.fillStyle = ACCENT_LIGHT;
+        roundRect(ctx, x, rowTop + 8, 64, 34, 8);
+        ctx.fill();
+        ctx.font = COUNT_FONT;
+        ctx.fillStyle = ACCENT;
+        ctx.fillText(String(day.count), x + 12, rowTop + 32);
+      });
+
+      y = rowTop + COUNT_ROW_HEIGHT;
+
+      ctx.strokeStyle = BORDER;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(MARGIN, y);
+      ctx.lineTo(WIDTH - MARGIN, y);
+      ctx.stroke();
+    }
 
     // Task rows
     rows.forEach((row) => {
