@@ -81,3 +81,16 @@ export interface WorkLogEntry {
   created_at: string;
   updated_at: string;
 }
+
+export type TaskStatus = "Not Started" | "In Progress" | "Completed";
+
+export interface TaskTrackerEntry {
+  id: string;
+  task: string;
+  deadline: string;
+  status: TaskStatus;
+  note: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}

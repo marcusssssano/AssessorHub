@@ -52,6 +52,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Work Log
             </Link>
             <Link
+              href="/admin/tasktracker"
+              className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              Task Tracker
+            </Link>
+            <Link
               href="/admin/users"
               className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
             >

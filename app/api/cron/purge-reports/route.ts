@@ -27,5 +27,10 @@ export async function GET() {
     return NextResponse.json({ ok: false, error: workLogError.message }, { status: 500 });
   }
 
+  const { error: taskTrackerError } = await supabase.rpc("purge_old_task_tracker_entries");
+  if (taskTrackerError) {
+    return NextResponse.json({ ok: false, error: taskTrackerError.message }, { status: 500 });
+  }
+
   return NextResponse.json({ ok: true, ranAt: new Date().toISOString() });
 }
