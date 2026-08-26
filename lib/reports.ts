@@ -45,6 +45,59 @@ export function defaultDescription(activityMonth: string): string {
   return `Please note that this data is for the ${formatMonth(activityMonth)} activity.`;
 }
 
+/** Sentinel "branch" value used to store the Overall Report's caption in report_descriptions. */
+export const OVERALL_REPORT_KEY = "__OVERALL__";
+
+/** The categories included in the Overall Report (branch totals) — excludes count-based Processed Return Mail. */
+export const OVERALL_REPORT_CATEGORIES = CATEGORIES.filter((c) => c.key !== "processed_return_mail");
+
+export function defaultOverallDescription(activityMonth: string): string {
+  return `Overall Report for the month of ${formatMonth(activityMonth)} activity.`;
+}
+
+/** Builds a plain-text reference file directory, grouped by category then branch, for download. */
+export function buildReferenceDirectoryText(
+  activityMonth: string,
+  entries: { branch: string; category: string; reference_file: string | null }[]
+): string {
+  const lines: string[] = [];
+  lines.push(`Reference File Directory — ${formatMonth(addMonths(activityMonth, 1))}`);
+  lines.push(`Generated ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`);
+  lines.push("");
+
+  for (const cat of OVERALL_REPORT_CATEGORIES) {
+    lines.push(cat.label.toUpperCase());
+    lines.push("-".repeat(cat.label.length));
+
+    for (const branch of BRANCHES) {
+      const files = entries
+        .filter((e) => e.category === cat.key && e.branch === branch && e.reference_file)
+        .map((e) => e.reference_file as string);
+
+      lines.push(`${branch} (${files.length})`);
+      if (files.length === 0) {
+        lines.push("  (no reference files)");
+      } else {
+        for (const f of files) lines.push(`  - ${f}`);
+      }
+    }
+    lines.push("");
+  }
+
+  return lines.join("\n");
+}
+
+/** Triggers a browser download of a plain-text file. */
+export function downloadTextFile(filename: string, content: string) {
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 /** Current month as "YYYY-MM-01". */
 export function currentMonth(): string {
   const now = new Date();

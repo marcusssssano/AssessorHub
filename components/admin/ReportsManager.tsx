@@ -5,14 +5,19 @@ import { createClient } from "@/lib/supabase/client";
 import type { ReportEntry } from "@/lib/types";
 import {
   BRANCHES,
+  buildReferenceDirectoryText,
   CATEGORIES,
   currentMonth,
   defaultDescription,
+  defaultOverallDescription,
+  downloadTextFile,
   inputValueToMonth,
   monthToInputValue,
+  OVERALL_REPORT_KEY,
   type CategoryKey,
 } from "@/lib/reports";
 import ReportChart from "@/components/ReportChart";
+import OverallReportChart, { type BranchCounts } from "@/components/OverallReportChart";
 import EditReportEntryModal from "@/components/admin/EditReportEntryModal";
 
 const PAGE_SIZE = 5;
@@ -44,6 +49,15 @@ export default function ReportsManager() {
   const [descriptionLoading, setDescriptionLoading] = useState(true);
   const [descriptionSaving, setDescriptionSaving] = useState(false);
   const [descriptionSaved, setDescriptionSaved] = useState(false);
+
+  const [allMonthEntries, setAllMonthEntries] = useState<
+    { branch: string; category: string; reference_file: string | null }[]
+  >([]);
+  const [overallLoading, setOverallLoading] = useState(true);
+  const [overallDescription, setOverallDescription] = useState("");
+  const [overallDescriptionLoading, setOverallDescriptionLoading] = useState(true);
+  const [overallDescriptionSaving, setOverallDescriptionSaving] = useState(false);
+  const [overallDescriptionSaved, setOverallDescriptionSaved] = useState(false);
 
   async function loadEntries() {
     setLoading(true);
@@ -83,11 +97,49 @@ export default function ReportsManager() {
     setDescriptionLoading(false);
   }
 
+  async function loadAllMonthEntries() {
+    setOverallLoading(true);
+    const { data, error } = await supabase
+      .from("report_entries")
+      .select("branch, category, reference_file")
+      .eq("activity_month", month)
+      .in("category", ["exempted_reason_code", "incorrect_scanned_label"])
+      .limit(5000);
+
+    if (!error) {
+      setAllMonthEntries(data ?? []);
+    }
+    setOverallLoading(false);
+  }
+
+  async function loadOverallDescription() {
+    setOverallDescriptionLoading(true);
+    const { data, error } = await supabase
+      .from("report_descriptions")
+      .select("description")
+      .eq("activity_month", month)
+      .eq("branch", OVERALL_REPORT_KEY)
+      .maybeSingle();
+
+    if (!error && data) {
+      setOverallDescription(data.description);
+    } else {
+      setOverallDescription(defaultOverallDescription(month));
+    }
+    setOverallDescriptionLoading(false);
+  }
+
   useEffect(() => {
     loadEntries();
     loadDescription();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month, branch]);
+
+  useEffect(() => {
+    loadAllMonthEntries();
+    loadOverallDescription();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month]);
 
   async function handleSaveDescription() {
     setDescriptionSaving(true);
@@ -106,6 +158,46 @@ export default function ReportsManager() {
     }
     setDescriptionSaved(true);
     setTimeout(() => setDescriptionSaved(false), 2000);
+  }
+
+  async function handleSaveOverallDescription() {
+    setOverallDescriptionSaving(true);
+    setOverallDescriptionSaved(false);
+    const { error } = await supabase.from("report_descriptions").upsert(
+      {
+        activity_month: month,
+        branch: OVERALL_REPORT_KEY,
+        description: overallDescription.trim() || defaultOverallDescription(month),
+      },
+      { onConflict: "activity_month,branch" }
+    );
+    setOverallDescriptionSaving(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setOverallDescriptionSaved(true);
+    setTimeout(() => setOverallDescriptionSaved(false), 2000);
+  }
+
+  const countsByBranch = useMemo(() => {
+    const map: BranchCounts = {};
+    for (const b of BRANCHES) {
+      map[b] = { exempted_reason_code: 0, incorrect_scanned_label: 0 };
+    }
+    for (const e of allMonthEntries) {
+      if (!map[e.branch]) continue;
+      if (e.category === "exempted_reason_code" || e.category === "incorrect_scanned_label") {
+        map[e.branch][e.category] += 1;
+      }
+    }
+    return map;
+  }, [allMonthEntries]);
+
+  function handleDownloadReferenceDirectory() {
+    const text = buildReferenceDirectoryText(month, allMonthEntries);
+    downloadTextFile(`Reference-File-Directory-${monthToInputValue(month)}.txt`, text);
   }
 
   const counts = useMemo(() => {
@@ -161,6 +253,7 @@ export default function ReportsManager() {
 
       setCount("");
       await loadEntries();
+      await loadAllMonthEntries();
       return;
     }
 
@@ -185,6 +278,7 @@ export default function ReportsManager() {
 
     setReferenceFile("");
     await loadEntries();
+    await loadAllMonthEntries();
   }
 
   async function handleDelete(id: string, label: string) {
@@ -195,6 +289,7 @@ export default function ReportsManager() {
       return;
     }
     await loadEntries();
+    await loadAllMonthEntries();
   }
 
   async function handleEditSave(
@@ -204,6 +299,7 @@ export default function ReportsManager() {
     const { error } = await supabase.from("report_entries").update(values).eq("id", id);
     if (error) throw error;
     await loadEntries();
+    await loadAllMonthEntries();
   }
 
   async function handleBulkDelete() {
@@ -220,6 +316,7 @@ export default function ReportsManager() {
       return;
     }
     await loadEntries();
+    await loadAllMonthEntries();
   }
 
   function toggleSelected(id: string) {
@@ -346,6 +443,70 @@ export default function ReportsManager() {
         description={description}
         fileNamePrefix="AssessorHub-Report"
       />
+
+      <details className="rounded-2xl border border-slate-200 bg-white shadow-sm" open>
+        <summary className="cursor-pointer select-none px-5 py-3 text-sm font-semibold text-[var(--navy-900)]">
+          Overall Monthly Report — All Branches
+        </summary>
+        <div className="flex flex-col gap-5 border-t border-slate-100 p-5">
+          <p className="text-xs text-slate-500">
+            Exempted Reason Code and Incorrect Scanned Label counts across every branch for{" "}
+            {monthToInputValue(month)}. Processed Return Mail isn&apos;t included since it&apos;s tracked as a
+            single count per branch, not per reference file.
+          </p>
+
+          <div className="flex flex-col gap-3">
+            <label className="text-xs font-medium text-slate-500">Overall Report Caption</label>
+            {overallDescriptionLoading ? (
+              <p className="text-sm text-slate-400">Loading...</p>
+            ) : (
+              <>
+                <textarea
+                  value={overallDescription}
+                  onChange={(e) => setOverallDescription(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. Overall Report for the month of August 2026 activity."
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+                />
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleSaveOverallDescription}
+                    disabled={overallDescriptionSaving}
+                    className="self-start rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors disabled:opacity-50"
+                  >
+                    {overallDescriptionSaving ? "Saving..." : "Save Caption"}
+                  </button>
+                  {overallDescriptionSaved && <span className="text-sm text-emerald-600">Saved!</span>}
+                </div>
+              </>
+            )}
+          </div>
+
+          {overallLoading ? (
+            <p className="text-sm text-slate-400">Loading...</p>
+          ) : (
+            <OverallReportChart
+              activityMonth={month}
+              countsByBranch={countsByBranch}
+              description={overallDescription}
+              fileNamePrefix="AssessorHub-Overall-Report"
+            />
+          )}
+
+          <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-4">
+            <span className="text-xs font-medium text-slate-500">
+              All reference files for {monthToInputValue(month)}, organized by category and branch
+            </span>
+            <button
+              onClick={handleDownloadReferenceDirectory}
+              disabled={overallLoading}
+              className="self-start rounded-full border border-slate-200 px-5 py-2.5 text-sm font-medium text-[var(--navy-900)] hover:bg-slate-50 transition-colors disabled:opacity-50"
+            >
+              Download Reference File Directory (.txt)
+            </button>
+          </div>
+        </div>
+      </details>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

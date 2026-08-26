@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { CATEGORIES, monthToInputValue, inputValueToMonth, type CategoryKey } from "@/lib/reports";
+import { monthToInputValue, inputValueToMonth, OVERALL_REPORT_KEY, type CategoryKey } from "@/lib/reports";
 import ReportChart from "@/components/ReportChart";
+import OverallReportChart, { type BranchCounts } from "@/components/OverallReportChart";
 
 interface MonthBranch {
   activity_month: string;
@@ -20,6 +21,10 @@ export default function PublicReportsViewer() {
   const [description, setDescription] = useState<string | null>(null);
   const [loadingCounts, setLoadingCounts] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [countsByBranch, setCountsByBranch] = useState<BranchCounts | null>(null);
+  const [overallDescription, setOverallDescription] = useState<string | null>(null);
+  const [loadingOverall, setLoadingOverall] = useState(false);
 
   useEffect(() => {
     async function loadAvailable() {
@@ -115,6 +120,45 @@ export default function PublicReportsViewer() {
     loadDescription();
   }, [month, branch, supabase]);
 
+  useEffect(() => {
+    async function loadOverall() {
+      if (!month) {
+        setCountsByBranch(null);
+        setOverallDescription(null);
+        return;
+      }
+      setLoadingOverall(true);
+
+      const [entriesRes, descRes] = await Promise.all([
+        supabase
+          .from("report_entries")
+          .select("branch, category")
+          .eq("activity_month", month)
+          .in("category", ["exempted_reason_code", "incorrect_scanned_label"])
+          .limit(5000),
+        supabase
+          .from("report_descriptions")
+          .select("description")
+          .eq("activity_month", month)
+          .eq("branch", OVERALL_REPORT_KEY)
+          .maybeSingle(),
+      ]);
+
+      if (!entriesRes.error) {
+        const map: BranchCounts = {};
+        for (const row of entriesRes.data ?? []) {
+          if (!map[row.branch]) map[row.branch] = { exempted_reason_code: 0, incorrect_scanned_label: 0 };
+          if (row.category === "exempted_reason_code") map[row.branch].exempted_reason_code += 1;
+          else if (row.category === "incorrect_scanned_label") map[row.branch].incorrect_scanned_label += 1;
+        }
+        setCountsByBranch(map);
+      }
+      setOverallDescription(descRes.data?.description ?? null);
+      setLoadingOverall(false);
+    }
+    loadOverall();
+  }, [month, supabase]);
+
   if (loadingAvailable) {
     return <p className="text-sm text-slate-400 text-center">Loading reports...</p>;
   }
@@ -174,6 +218,26 @@ export default function PublicReportsViewer() {
           description={description}
           fileNamePrefix="AssessorHub-Report"
         />
+      )}
+
+      {month && (
+        <details className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <summary className="cursor-pointer select-none px-5 py-3 text-sm font-semibold text-[var(--navy-900)]">
+            Overall Monthly Report — All Branches
+          </summary>
+          <div className="border-t border-slate-100 p-5 flex justify-center">
+            {loadingOverall || !countsByBranch ? (
+              <p className="text-sm text-slate-400">Loading...</p>
+            ) : (
+              <OverallReportChart
+                activityMonth={month}
+                countsByBranch={countsByBranch}
+                description={overallDescription}
+                fileNamePrefix="AssessorHub-Overall-Report"
+              />
+            )}
+          </div>
+        </details>
       )}
     </div>
   );
