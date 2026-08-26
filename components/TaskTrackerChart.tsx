@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { computeTimeToFinish, formatDate, formatLoggedDate, rowAccentColor, statusColor, TONE_COLORS } from "@/lib/tasktracker";
+import { computeTimeToFinish, formatDate, rowAccentColor, statusColor, TONE_COLORS } from "@/lib/tasktracker";
 import type { TaskTrackerEntry } from "@/lib/types";
 
 const WIDTH = 1600;
@@ -12,20 +12,13 @@ const CONTENT_WIDTH = WIDTH - MARGIN * 2 - ACCENT_BAR_WIDTH - 10;
 const COL_GAP = 16;
 
 const COL_WIDTHS = {
-  task: 330,
-  logged: 105,
-  deadline: 115,
-  ttf: 135,
-  status: 110,
+  task: 370,
+  deadline: 130,
+  ttf: 150,
+  status: 120,
 };
 const NOTE_WIDTH =
-  CONTENT_WIDTH -
-  COL_WIDTHS.task -
-  COL_WIDTHS.logged -
-  COL_WIDTHS.deadline -
-  COL_WIDTHS.ttf -
-  COL_WIDTHS.status -
-  COL_GAP * 5;
+  CONTENT_WIDTH - COL_WIDTHS.task - COL_WIDTHS.deadline - COL_WIDTHS.ttf - COL_WIDTHS.status - COL_GAP * 4;
 
 const NAVY = "#0b1f3f";
 const SLATE = "#64748b";
@@ -159,7 +152,7 @@ export default function TaskTrackerChart({
       doneEntries.forEach((e) => rows.push(buildDataRow(e)));
     }
 
-    const headerBandHeight = 110;
+    const headerBandHeight = 90;
     const tableHeaderHeight = 40;
     const contentTop = headerBandHeight + 30;
     const totalRowsHeight = rows.reduce((sum, r) => sum + r.height, 0);
@@ -187,11 +180,6 @@ export default function TaskTrackerChart({
     ctx.font = "700 30px Arial, sans-serif";
     ctx.fillText("Task Tracker", MARGIN, 46);
 
-    ctx.font = "400 15px Arial, sans-serif";
-    ctx.fillStyle = "#c7d3e8";
-    const generatedOn = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
-    ctx.fillText(`Generated ${generatedOn}`, MARGIN, 70);
-
     ctx.font = "700 15px Arial, sans-serif";
     const summaryParts = [
       `${entries.length} Task${entries.length === 1 ? "" : "s"}`,
@@ -202,16 +190,16 @@ export default function TaskTrackerChart({
     summaryParts.forEach((part, i) => {
       const color = i === 1 && overdueCount > 0 ? "#fca5a5" : i === 2 ? "#86efac" : "#ffffff";
       ctx.fillStyle = color;
-      ctx.fillText(part, sx, 94);
+      ctx.fillText(part, sx, 74);
       sx += ctx.measureText(part).width + 16;
       if (i < summaryParts.length - 1) {
         ctx.fillStyle = "#5b6b8a";
-        ctx.fillText("·", sx - 12, 94);
+        ctx.fillText("·", sx - 12, 74);
       }
     });
 
     function colX(col: keyof typeof COL_WIDTHS | "note") {
-      const order: (keyof typeof COL_WIDTHS | "note")[] = ["task", "logged", "deadline", "ttf", "status", "note"];
+      const order: (keyof typeof COL_WIDTHS | "note")[] = ["task", "deadline", "ttf", "status", "note"];
       let x = CONTENT_X;
       for (const c of order) {
         if (c === col) return x;
@@ -226,7 +214,6 @@ export default function TaskTrackerChart({
     ctx.font = HEADER_FONT;
     ctx.fillStyle = SLATE;
     ctx.fillText("TASK", colX("task"), y + 24);
-    ctx.fillText("LOGGED", colX("logged"), y + 24);
     ctx.fillText("DEADLINE", colX("deadline"), y + 24);
     ctx.fillText("TIME TO FINISH", colX("ttf"), y + 24);
     ctx.fillText("STATUS", colX("status"), y + 24);
@@ -278,9 +265,6 @@ export default function TaskTrackerChart({
       row.taskLines.forEach((line, li) => ctx.fillText(line, colX("task"), textY + li * LINE_HEIGHT));
 
       ctx.font = BODY_FONT;
-      ctx.fillStyle = "#334155";
-      ctx.fillText(formatLoggedDate(row.entry.created_at), colX("logged"), textY);
-
       ctx.fillStyle = "#334155";
       ctx.fillText(formatDate(row.entry.deadline), colX("deadline"), textY);
 

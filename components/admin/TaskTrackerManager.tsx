@@ -2,15 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import {
-  computeTimeToFinish,
-  formatDate,
-  formatLoggedDate,
-  rowAccentColor,
-  STATUSES,
-  todayStr,
-  TONE_COLORS,
-} from "@/lib/tasktracker";
+import { computeTimeToFinish, formatDate, rowAccentColor, STATUSES, todayStr, TONE_COLORS } from "@/lib/tasktracker";
 import type { TaskStatus, TaskTrackerEntry } from "@/lib/types";
 import TaskTrackerChart from "@/components/TaskTrackerChart";
 
@@ -268,89 +260,93 @@ export default function TaskTrackerManager() {
       ) : visibleEntries.length === 0 ? (
         <p className="text-sm text-slate-400">No tasks found.</p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 text-left text-xs font-medium text-slate-500">
-                <th className="px-5 py-3">Task</th>
-                <th className="px-5 py-3">Logged</th>
-                <th className="px-5 py-3">Deadline</th>
-                <th className="px-5 py-3">Time to Finish</th>
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3">Note</th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(() => {
-                const openEntries = visibleEntries.filter((e) => e.status !== "Completed");
-                const doneEntries = visibleEntries.filter((e) => e.status === "Completed");
+        <details className="rounded-2xl border border-slate-200 bg-white shadow-sm" open>
+          <summary className="cursor-pointer select-none px-5 py-3 text-sm font-semibold text-[var(--navy-900)]">
+            Tasks ({visibleEntries.length})
+          </summary>
+          <div className="overflow-x-auto border-t border-slate-100">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 text-left text-xs font-medium text-slate-500">
+                  <th className="px-5 py-3">Task</th>
+                  <th className="px-5 py-3">Deadline</th>
+                  <th className="px-5 py-3">Time to Finish</th>
+                  <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Note</th>
+                  <th className="px-5 py-3" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {(() => {
+                  const openEntries = visibleEntries.filter((e) => e.status !== "Completed");
+                  const doneEntries = visibleEntries.filter((e) => e.status === "Completed");
 
-                function renderRow(entry: TaskTrackerEntry) {
-                  const ttf = computeTimeToFinish(entry.deadline, entry.status, entry.completed_at);
-                  const accent = rowAccentColor(entry.status, entry.deadline, entry.completed_at);
+                  function renderRow(entry: TaskTrackerEntry) {
+                    const ttf = computeTimeToFinish(entry.deadline, entry.status, entry.completed_at);
+                    const accent = rowAccentColor(entry.status, entry.deadline, entry.completed_at);
+                    return (
+                      <tr key={entry.id} className="hover:bg-slate-50/60 transition-colors align-top">
+                        <td className="px-5 py-3 max-w-xs" style={{ borderLeft: `4px solid ${accent}` }}>
+                          <span className="font-medium text-[var(--navy-900)]">{entry.task}</span>
+                        </td>
+                        <td className="px-5 py-3 whitespace-nowrap text-slate-600">{formatDate(entry.deadline)}</td>
+                        <td
+                          className="px-5 py-3 whitespace-nowrap font-medium"
+                          style={{ color: TONE_COLORS[ttf.tone] }}
+                        >
+                          {ttf.label}
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`rounded-full px-3 py-1 text-xs font-medium ${STATUS_BADGE[entry.status]}`}>
+                            {entry.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 max-w-xs text-slate-500 whitespace-pre-wrap">{entry.note}</td>
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-2 text-xs whitespace-nowrap">
+                            <button
+                              onClick={() => startEdit(entry)}
+                              className="rounded-full px-3 py-1.5 text-[var(--accent)] hover:bg-[var(--accent-light)] transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(entry.id, entry.task)}
+                              className="rounded-full px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+
                   return (
-                    <tr key={entry.id} className="hover:bg-slate-50/60 transition-colors align-top">
-                      <td className="px-5 py-3 max-w-xs" style={{ borderLeft: `4px solid ${accent}` }}>
-                        <span className="font-medium text-[var(--navy-900)]">{entry.task}</span>
-                      </td>
-                      <td className="px-5 py-3 whitespace-nowrap text-slate-500">
-                        {formatLoggedDate(entry.created_at)}
-                      </td>
-                      <td className="px-5 py-3 whitespace-nowrap text-slate-600">{formatDate(entry.deadline)}</td>
-                      <td className="px-5 py-3 whitespace-nowrap font-medium" style={{ color: TONE_COLORS[ttf.tone] }}>
-                        {ttf.label}
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className={`rounded-full px-3 py-1 text-xs font-medium ${STATUS_BADGE[entry.status]}`}>
-                          {entry.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 max-w-xs text-slate-500 whitespace-pre-wrap">{entry.note}</td>
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-2 text-xs whitespace-nowrap">
-                          <button
-                            onClick={() => startEdit(entry)}
-                            className="rounded-full px-3 py-1.5 text-[var(--accent)] hover:bg-[var(--accent-light)] transition-colors"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(entry.id, entry.task)}
-                            className="rounded-full px-3 py-1.5 text-red-600 hover:bg-red-50 transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                    <>
+                      {openEntries.length > 0 && (
+                        <tr>
+                          <td colSpan={6} className="bg-slate-50 px-5 py-2 text-xs font-semibold text-slate-500">
+                            OPEN TASKS ({openEntries.length})
+                          </td>
+                        </tr>
+                      )}
+                      {openEntries.map(renderRow)}
+                      {doneEntries.length > 0 && (
+                        <tr>
+                          <td colSpan={6} className="bg-slate-50 px-5 py-2 text-xs font-semibold text-slate-500">
+                            COMPLETED ({doneEntries.length})
+                          </td>
+                        </tr>
+                      )}
+                      {doneEntries.map(renderRow)}
+                    </>
                   );
-                }
-
-                return (
-                  <>
-                    {openEntries.length > 0 && (
-                      <tr>
-                        <td colSpan={7} className="bg-slate-50 px-5 py-2 text-xs font-semibold text-slate-500">
-                          OPEN TASKS ({openEntries.length})
-                        </td>
-                      </tr>
-                    )}
-                    {openEntries.map(renderRow)}
-                    {doneEntries.length > 0 && (
-                      <tr>
-                        <td colSpan={7} className="bg-slate-50 px-5 py-2 text-xs font-semibold text-slate-500">
-                          COMPLETED ({doneEntries.length})
-                        </td>
-                      </tr>
-                    )}
-                    {doneEntries.map(renderRow)}
-                  </>
-                );
-              })()}
-            </tbody>
-          </table>
-        </div>
+                })()}
+              </tbody>
+            </table>
+          </div>
+        </details>
       )}
 
       <TaskTrackerChart entries={visibleEntries} fileNamePrefix="Task-Tracker" />
