@@ -13,7 +13,12 @@ const NAVY = "#0b1f3f";
 const ACCENT = "#2f6fed";
 const ACCENT_LIGHT = "#eaf1ff";
 const SLATE = "#64748b";
-const LINE_HEIGHT = 21;
+const LINE_HEIGHT = 26;
+const BODY_FONT = "400 18px Arial, sans-serif";
+const LABEL_FONT = "700 14px Arial, sans-serif";
+const DAY_HEADER_FONT = "700 21px Arial, sans-serif";
+const BADGE_FONT = "700 15px Arial, sans-serif";
+const META_FONT = "400 15px Arial, sans-serif";
 
 const SECTIONS: { key: "completed_tasks" | "ongoing_tasks" | "next_tasks"; label: string; color: string }[] = [
   { key: "completed_tasks", label: "Completed Tasks", color: "#16a34a" },
@@ -112,16 +117,16 @@ export default function WeeklyWorkLogChart({
     if (!mctx) return;
 
     const dates = weekdayDates(mondayDate);
-    const dayHeaderHeight = 40;
-    const columnLabelHeight = 24;
-    const noEntryHeight = 26;
-    const dayBlockPadding = 30;
+    const dayHeaderHeight = 46;
+    const columnLabelHeight = 30;
+    const noEntryHeight = 30;
+    const dayBlockPadding = 34;
 
     const days: DayLayout[] = dates.map((date, i) => {
       const entry = entriesByDate[date];
       const hasEntry = !!entry;
 
-      mctx.font = "400 15px Arial, sans-serif";
+      mctx.font = BODY_FONT;
       const columns: ColumnLayout[] = hasEntry
         ? SECTIONS.map((s) => {
             const lines = paragraphLines(mctx, entry![s.key], COLUMN_WIDTH);
@@ -184,11 +189,11 @@ export default function WeeklyWorkLogChart({
     ctx.fillStyle = NAVY;
     ctx.fillRect(0, 0, WIDTH, headerHeight);
     ctx.fillStyle = "#ffffff";
-    ctx.font = "700 32px Arial, sans-serif";
-    ctx.fillText("Weekly Work Log", MARGIN, 52);
-    ctx.font = "400 17px Arial, sans-serif";
+    ctx.font = "700 34px Arial, sans-serif";
+    ctx.fillText("Weekly Work Log", MARGIN, 54);
+    ctx.font = "400 18px Arial, sans-serif";
     ctx.fillStyle = "#c7d3e8";
-    ctx.fillText(formatWeekRange(mondayDate), MARGIN, 82);
+    ctx.fillText(formatWeekRange(mondayDate), MARGIN, 84);
 
     // Days
     let y = contentTop;
@@ -196,30 +201,30 @@ export default function WeeklyWorkLogChart({
       const blockTop = y;
 
       // Day header row
-      ctx.font = "700 18px Arial, sans-serif";
+      ctx.font = DAY_HEADER_FONT;
       ctx.fillStyle = NAVY;
-      ctx.fillText(`${day.dayName.toUpperCase()} · ${day.dateLabel}`, MARGIN, y + 16);
+      ctx.fillText(`${day.dayName.toUpperCase()} · ${day.dateLabel}`, MARGIN, y + 18);
 
       if (day.hasEntry) {
         const badgeText = `${day.count} Return Mail Processed`;
-        ctx.font = "700 14px Arial, sans-serif";
-        const badgeWidth = ctx.measureText(badgeText).width + 26;
+        ctx.font = BADGE_FONT;
+        const badgeWidth = ctx.measureText(badgeText).width + 30;
         const badgeX = WIDTH - MARGIN - badgeWidth;
         ctx.fillStyle = ACCENT_LIGHT;
-        roundRect(ctx, badgeX, y - 4, badgeWidth, 26, 13);
+        roundRect(ctx, badgeX, y - 6, badgeWidth, 30, 15);
         ctx.fill();
         ctx.fillStyle = ACCENT;
-        ctx.fillText(badgeText, badgeX + 13, y + 15);
+        ctx.fillText(badgeText, badgeX + 15, y + 15);
       }
 
       const sectionTop = y + dayHeaderHeight;
 
       if (!day.hasEntry) {
-        ctx.font = "400 14px Arial, sans-serif";
+        ctx.font = META_FONT;
         ctx.fillStyle = SLATE;
         ctx.fillText("No entry logged.", MARGIN, sectionTop + 6);
       } else if (day.contentHeight === 0) {
-        ctx.font = "400 14px Arial, sans-serif";
+        ctx.font = META_FONT;
         ctx.fillStyle = SLATE;
         ctx.fillText(`${day.count} return mail processed. No task notes.`, MARGIN, sectionTop + 6);
       } else {
@@ -227,14 +232,14 @@ export default function WeeklyWorkLogChart({
           if (col.lines.length === 0) return;
           const colX = MARGIN + ci * (COLUMN_WIDTH + COLUMN_GAP);
 
-          ctx.font = "700 13px Arial, sans-serif";
+          ctx.font = LABEL_FONT;
           ctx.fillStyle = col.color;
-          ctx.fillText(col.label.toUpperCase(), colX, sectionTop + 14);
+          ctx.fillText(col.label.toUpperCase(), colX, sectionTop + 15);
 
-          ctx.font = "400 15px Arial, sans-serif";
+          ctx.font = BODY_FONT;
           ctx.fillStyle = NAVY;
           col.lines.forEach((line, li) => {
-            ctx.fillText(line, colX, sectionTop + columnLabelHeight + 14 + li * LINE_HEIGHT);
+            ctx.fillText(line, colX, sectionTop + columnLabelHeight + 15 + li * LINE_HEIGHT);
           });
         });
       }
