@@ -1,16 +1,12 @@
 import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
+import TrackerChoiceCard from "@/components/TrackerChoiceCard";
 
 const REPORT_LINKS = [
   {
     href: "/reports/monthly",
     title: "Scan Audit Report",
     description: "Exempted Reason Code, Incorrect Scanned Label, and Processed Return Mail activity by branch.",
-  },
-  {
-    href: "/tracker",
-    title: "CSSC Return Mail Tracker",
-    description: "Monthly branch completion status, tracked as Complete or Not Started.",
   },
   {
     href: "/worklog",
@@ -36,7 +32,19 @@ export default function ReportsHubPage() {
         </div>
 
         <div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-2">
-          {REPORT_LINKS.map((r) => (
+          <Link
+            href={REPORT_LINKS[0].href}
+            className="group flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-colors hover:border-[var(--accent)] hover:bg-[var(--accent-light)]/40"
+          >
+            <span className="text-base font-semibold text-[var(--navy-900)] group-hover:text-[var(--accent)] transition-colors">
+              {REPORT_LINKS[0].title}
+            </span>
+            <span className="text-sm text-slate-500">{REPORT_LINKS[0].description}</span>
+          </Link>
+
+          <TrackerChoiceCard csscHref="/tracker" regularHref="/tracker/regular" />
+
+          {REPORT_LINKS.slice(1).map((r) => (
             <Link
               key={r.href}
               href={r.href}

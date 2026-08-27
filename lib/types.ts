@@ -52,6 +52,16 @@ export interface TrackerBranch {
   id: string;
   name: string;
   sort_order: number;
+  tracker_type: "cssc" | "regular";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrackerDescription {
+  id: string;
+  activity_month: string;
+  tracker_type: "cssc" | "regular";
+  description: string;
   created_at: string;
   updated_at: string;
 }

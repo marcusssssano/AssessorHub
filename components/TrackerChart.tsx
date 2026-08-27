@@ -16,12 +16,14 @@ export default function TrackerChart({
   branches,
   statuses,
   title,
+  description,
   fileNamePrefix,
 }: {
   activityMonth: string;
   branches: TrackerBranch[];
   statuses: Record<string, boolean>;
   title?: string;
+  description?: string | null;
   fileNamePrefix?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -37,7 +39,13 @@ export default function TrackerChart({
     const titleLines = wrapLines(ctx, fullTitle, WIDTH - 80);
     const titleLineHeight = 32;
 
-    const headerHeight = 40 + titleLines.length * titleLineHeight;
+    const descText = description?.trim() || "";
+    ctx.font = "400 14px Arial, sans-serif";
+    const descLines = descText ? wrapLines(ctx, descText, WIDTH - 80) : [];
+    const descLineHeight = 20;
+
+    const headerHeight =
+      40 + titleLines.length * titleLineHeight + (descLines.length > 0 ? descLines.length * descLineHeight + 10 : 0);
     const tableTop = headerHeight + 55;
     const contentHeight = Math.max(branches.length * ROW_HEIGHT + 40, 320);
     const HEIGHT = headerHeight + contentHeight + 50;
@@ -62,6 +70,13 @@ export default function TrackerChart({
     titleLines.forEach((line, i) => {
       ctx.fillText(line, 40, 42 + i * titleLineHeight);
     });
+
+    if (descLines.length > 0) {
+      const descStartY = 42 + titleLines.length * titleLineHeight + 12;
+      ctx.font = "400 14px Arial, sans-serif";
+      ctx.fillStyle = "#c7d3e8";
+      descLines.forEach((line, i) => ctx.fillText(line, 40, descStartY + i * descLineHeight));
+    }
 
     const total = branches.length;
     const completedCount = branches.filter((b) => statuses[b.id]).length;
@@ -192,7 +207,7 @@ export default function TrackerChart({
       ctx.fillStyle = NAVY;
       ctx.fillText(`Not Started ${notStartedPct}%`, cx - 72, legendRow2Y + 7);
     }
-  }, [activityMonth, branches, statuses, title]);
+  }, [activityMonth, branches, statuses, title, description]);
 
   function handleDownload() {
     const canvas = canvasRef.current;

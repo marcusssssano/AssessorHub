@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { currentMonth, inputValueToMonth, monthToInputValue } from "@/lib/reports";
+import { currentMonth, defaultDescription, inputValueToMonth, monthToInputValue } from "@/lib/reports";
+import { TRACKER_DEFAULT_TITLE, TRACKER_SETTINGS_ID, type TrackerType } from "@/lib/tracker";
 import type { TrackerBranch } from "@/lib/types";
 import TrackerChart from "@/components/TrackerChart";
 
-export default function TrackerManager() {
+export default function TrackerManager({ trackerType }: { trackerType: TrackerType }) {
   const supabase = useMemo(() => createClient(), []);
   const [month, setMonth] = useState(currentMonth());
 
@@ -21,16 +22,22 @@ export default function TrackerManager() {
   const [loadingStatuses, setLoadingStatuses] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [title, setTitle] = useState("CSSC Return Mail Tracker");
+  const [title, setTitle] = useState(TRACKER_DEFAULT_TITLE[trackerType]);
   const [loadingTitle, setLoadingTitle] = useState(true);
   const [savingTitle, setSavingTitle] = useState(false);
   const [titleSaved, setTitleSaved] = useState(false);
+
+  const [description, setDescription] = useState("");
+  const [descriptionLoading, setDescriptionLoading] = useState(true);
+  const [descriptionSaving, setDescriptionSaving] = useState(false);
+  const [descriptionSaved, setDescriptionSaved] = useState(false);
 
   async function loadBranches() {
     setLoadingBranches(true);
     const { data, error } = await supabase
       .from("tracker_branches")
       .select("*")
+      .eq("tracker_type", trackerType)
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true })
       .limit(500);
@@ -68,13 +75,30 @@ export default function TrackerManager() {
     const { data, error } = await supabase
       .from("tracker_settings")
       .select("title")
-      .eq("id", "00000000-0000-0000-0000-000000000001")
+      .eq("id", TRACKER_SETTINGS_ID[trackerType])
       .maybeSingle();
 
     if (!error && data) {
       setTitle(data.title);
     }
     setLoadingTitle(false);
+  }
+
+  async function loadDescription() {
+    setDescriptionLoading(true);
+    const { data, error } = await supabase
+      .from("tracker_descriptions")
+      .select("description")
+      .eq("activity_month", month)
+      .eq("tracker_type", trackerType)
+      .maybeSingle();
+
+    if (!error && data) {
+      setDescription(data.description);
+    } else {
+      setDescription(defaultDescription(month));
+    }
+    setDescriptionLoading(false);
   }
 
   useEffect(() => {
@@ -85,6 +109,7 @@ export default function TrackerManager() {
 
   useEffect(() => {
     loadStatuses();
+    if (trackerType === "regular") loadDescription();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month]);
 
@@ -95,7 +120,7 @@ export default function TrackerManager() {
     const { error } = await supabase
       .from("tracker_settings")
       .update({ title: title.trim() })
-      .eq("id", "00000000-0000-0000-0000-000000000001");
+      .eq("id", TRACKER_SETTINGS_ID[trackerType]);
     setSavingTitle(false);
 
     if (error) {
@@ -106,6 +131,27 @@ export default function TrackerManager() {
     setTimeout(() => setTitleSaved(false), 2000);
   }
 
+  async function handleSaveDescription() {
+    setDescriptionSaving(true);
+    setDescriptionSaved(false);
+    const { error } = await supabase.from("tracker_descriptions").upsert(
+      {
+        activity_month: month,
+        tracker_type: trackerType,
+        description: description.trim() || defaultDescription(month),
+      },
+      { onConflict: "activity_month,tracker_type" }
+    );
+    setDescriptionSaving(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setDescriptionSaved(true);
+    setTimeout(() => setDescriptionSaved(false), 2000);
+  }
+
   async function handleAddBranch(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -114,9 +160,11 @@ export default function TrackerManager() {
       return;
     }
     setAddingBranch(true);
-    const { error } = await supabase
-      .from("tracker_branches")
-      .insert({ name: newBranchName.trim().toUpperCase(), sort_order: branches.length });
+    const { error } = await supabase.from("tracker_branches").insert({
+      name: newBranchName.trim().toUpperCase(),
+      sort_order: branches.length,
+      tracker_type: trackerType,
+    });
     setAddingBranch(false);
 
     if (error) {
@@ -333,12 +381,41 @@ export default function TrackerManager() {
             </ul>
           </details>
 
+          {trackerType === "regular" && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col gap-3">
+              <label className="text-xs font-medium text-slate-500">Report Sub-caption</label>
+              {descriptionLoading ? (
+                <p className="text-sm text-slate-400">Loading...</p>
+              ) : (
+                <>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={2}
+                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+                  />
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleSaveDescription}
+                      disabled={descriptionSaving}
+                      className="self-start rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors disabled:opacity-50"
+                    >
+                      {descriptionSaving ? "Saving..." : "Save Sub-caption"}
+                    </button>
+                    {descriptionSaved && <span className="text-sm text-emerald-600">Saved!</span>}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           <TrackerChart
             activityMonth={month}
             branches={branches}
             statuses={statuses}
             title={title}
-            fileNamePrefix="CSSC-Return-Mail-Tracker"
+            description={trackerType === "regular" ? description : undefined}
+            fileNamePrefix={trackerType === "regular" ? "Regular-Return-Mail-Tracker" : "CSSC-Return-Mail-Tracker"}
           />
         </>
       )}

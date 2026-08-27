@@ -3,15 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { currentMonth, inputValueToMonth, monthToInputValue } from "@/lib/reports";
+import { TRACKER_DEFAULT_TITLE, TRACKER_SETTINGS_ID, type TrackerType } from "@/lib/tracker";
 import type { TrackerBranch } from "@/lib/types";
 import TrackerChart from "@/components/TrackerChart";
 
-export default function PublicTrackerViewer() {
+export default function PublicTrackerViewer({ trackerType = "cssc" }: { trackerType?: TrackerType }) {
   const supabase = useMemo(() => createClient(), []);
   const [month, setMonth] = useState(currentMonth());
   const [branches, setBranches] = useState<TrackerBranch[]>([]);
   const [statuses, setStatuses] = useState<Record<string, boolean>>({});
-  const [title, setTitle] = useState("CSSC Return Mail Tracker");
+  const [title, setTitle] = useState(TRACKER_DEFAULT_TITLE[trackerType]);
+  const [description, setDescription] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,10 +24,12 @@ export default function PublicTrackerViewer() {
         { data: branchData, error: branchErr },
         { data: statusData, error: statusErr },
         { data: settingsData },
+        { data: descriptionData },
       ] = await Promise.all([
         supabase
           .from("tracker_branches")
           .select("*")
+          .eq("tracker_type", trackerType)
           .order("sort_order", { ascending: true })
           .order("name", { ascending: true })
           .limit(500),
@@ -37,8 +41,16 @@ export default function PublicTrackerViewer() {
         supabase
           .from("tracker_settings")
           .select("title")
-          .eq("id", "00000000-0000-0000-0000-000000000001")
+          .eq("id", TRACKER_SETTINGS_ID[trackerType])
           .maybeSingle(),
+        trackerType === "regular"
+          ? supabase
+              .from("tracker_descriptions")
+              .select("description")
+              .eq("activity_month", month)
+              .eq("tracker_type", trackerType)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
       ]);
 
       if (branchErr || statusErr) {
@@ -49,11 +61,12 @@ export default function PublicTrackerViewer() {
         for (const row of statusData ?? []) map[row.branch_id] = row.completed;
         setStatuses(map);
         if (settingsData) setTitle(settingsData.title);
+        setDescription(descriptionData?.description ?? null);
       }
       setLoading(false);
     }
     load();
-  }, [month, supabase]);
+  }, [month, trackerType, supabase]);
 
   return (
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
@@ -88,7 +101,8 @@ export default function PublicTrackerViewer() {
           branches={branches}
           statuses={statuses}
           title={title}
-          fileNamePrefix="CSSC-Return-Mail-Tracker"
+          description={trackerType === "regular" ? description : undefined}
+          fileNamePrefix={trackerType === "regular" ? "Regular-Return-Mail-Tracker" : "CSSC-Return-Mail-Tracker"}
         />
       )}
     </div>
