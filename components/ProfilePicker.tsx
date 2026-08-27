@@ -50,11 +50,11 @@ export default function ProfilePicker() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-6 py-16 gap-10 bg-[var(--navy-900)]">
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-4">
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent)] text-white font-bold text-xl">
           AH
         </div>
-        <h1 className="text-2xl font-semibold text-white">Who&apos;s using AssessorHub?</h1>
+        <h1 className="text-3xl md:text-5xl font-medium text-white">Who&apos;s working?</h1>
       </div>
 
       {loading && <p className="text-sm text-white/50">Loading profiles...</p>}
@@ -66,17 +66,21 @@ export default function ProfilePicker() {
         </p>
       )}
 
-      <div className="flex flex-wrap items-center justify-center gap-6">
+      <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-8 md:gap-x-10">
         {users.map((u) => (
           <button
             key={u.id}
             onClick={() => setPending(u)}
+            aria-label={`Select profile: ${u.name}`}
             className="group flex flex-col items-center gap-3"
           >
-            <div className="flex h-24 w-24 items-center justify-center rounded-2xl bg-[var(--accent)] text-white text-3xl font-bold shadow-lg transition-transform group-hover:scale-105 group-hover:ring-4 group-hover:ring-white/20">
-              {u.name.charAt(0).toUpperCase()}
+            <div className="relative h-28 w-28 md:h-36 md:w-36 rounded-full transition-transform duration-300 ease-out group-hover:-translate-y-2">
+              <div className="absolute inset-0 rounded-full bg-[var(--accent)] transition-shadow duration-300 group-hover:shadow-[0_0_0_6px_rgba(47,111,237,0.25)]" />
+              <div className="relative flex h-full w-full items-center justify-center rounded-full text-white text-4xl md:text-5xl font-bold">
+                {u.name.charAt(0).toUpperCase()}
+              </div>
             </div>
-            <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+            <span className="text-base md:text-lg text-white/70 group-hover:text-white transition-colors">
               {u.name}
             </span>
           </button>
