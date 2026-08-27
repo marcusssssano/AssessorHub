@@ -94,7 +94,7 @@ export default function LampContainer({ children }: { children: React.ReactNode 
       </div>
       </motion.div>
 
-      <div className="relative z-50 flex w-full flex-1 flex-col items-center px-5 pb-16" style={{ marginTop: -BEAM_HEIGHT * 0.42 }}>
+      <div className="relative z-50 flex w-full flex-1 flex-col items-center px-5 pb-16" style={{ marginTop: -BEAM_HEIGHT * 0.68 }}>
         {children}
       </div>
     </div>
