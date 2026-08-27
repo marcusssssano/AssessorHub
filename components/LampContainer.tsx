@@ -12,13 +12,13 @@ export default function LampContainer({ children }: { children: React.ReactNode 
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-[var(--navy-900)]">
       <div className="relative flex w-full flex-1 scale-y-125 items-center justify-center isolate z-0">
         <motion.div
-          initial={{ opacity: 0.5, width: "15rem" }}
-          animate={{ opacity: 1, width: "30rem" }}
-          transition={{ delay: 0.3, duration: 0.8, ease: "easeInOut" }}
+          initial={{ opacity: 0.5, width: "19rem" }}
+          animate={{ opacity: 1, width: "38rem" }}
+          transition={{ delay: 0.3, duration: 1.8, ease: "easeInOut" }}
           style={{
             backgroundImage: `conic-gradient(from 70deg at center top, ${GLOW}, transparent, transparent)`,
           }}
-          className="absolute inset-auto right-1/2 h-56 overflow-visible w-[30rem] text-white"
+          className="absolute inset-auto right-1/2 h-56 overflow-visible w-[38rem] text-white"
         >
           <div
             className="absolute w-[100%] left-0 h-40 bottom-0 z-20"
@@ -30,13 +30,13 @@ export default function LampContainer({ children }: { children: React.ReactNode 
           />
         </motion.div>
         <motion.div
-          initial={{ opacity: 0.5, width: "15rem" }}
-          animate={{ opacity: 1, width: "30rem" }}
-          transition={{ delay: 0.3, duration: 0.8, ease: "easeInOut" }}
+          initial={{ opacity: 0.5, width: "19rem" }}
+          animate={{ opacity: 1, width: "38rem" }}
+          transition={{ delay: 0.3, duration: 1.8, ease: "easeInOut" }}
           style={{
             backgroundImage: `conic-gradient(from 290deg at center top, transparent, transparent, ${GLOW})`,
           }}
-          className="absolute inset-auto left-1/2 h-56 w-[30rem] text-white"
+          className="absolute inset-auto left-1/2 h-56 w-[38rem] text-white"
         >
           <div
             className="absolute w-40 h-[100%] right-0 bottom-0 z-20"
@@ -51,21 +51,21 @@ export default function LampContainer({ children }: { children: React.ReactNode 
         <div className="absolute top-1/2 h-48 w-full translate-y-12 scale-x-150 blur-2xl" style={{ background: NAVY }} />
         <div className="absolute top-1/2 z-50 h-48 w-full bg-transparent opacity-10 backdrop-blur-md" />
         <div
-          className="absolute inset-auto z-50 h-36 w-[28rem] -translate-y-1/2 rounded-full opacity-50 blur-3xl"
+          className="absolute inset-auto z-50 h-36 w-[34rem] -translate-y-1/2 rounded-full opacity-50 blur-3xl"
           style={{ background: GLOW }}
         />
         <motion.div
-          initial={{ width: "8rem" }}
-          animate={{ width: "16rem" }}
-          transition={{ delay: 0.3, duration: 0.8, ease: "easeInOut" }}
+          initial={{ width: "10rem" }}
+          animate={{ width: "20rem" }}
+          transition={{ delay: 0.3, duration: 1.8, ease: "easeInOut" }}
           className="absolute inset-auto z-30 h-36 w-64 -translate-y-[6rem] rounded-full blur-2xl"
           style={{ background: GLOW_BRIGHT }}
         />
         <motion.div
-          initial={{ width: "15rem" }}
-          animate={{ width: "30rem" }}
-          transition={{ delay: 0.3, duration: 0.8, ease: "easeInOut" }}
-          className="absolute inset-auto z-50 h-0.5 w-[30rem] -translate-y-[7rem]"
+          initial={{ width: "19rem" }}
+          animate={{ width: "38rem" }}
+          transition={{ delay: 0.3, duration: 1.8, ease: "easeInOut" }}
+          className="absolute inset-auto z-50 h-0.5 w-[38rem] -translate-y-[7rem]"
           style={{ background: GLOW_LINE }}
         />
 

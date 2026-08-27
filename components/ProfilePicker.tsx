@@ -56,15 +56,15 @@ export default function ProfilePicker() {
         <motion.h1
           initial={{ opacity: 0.5, y: 100 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.8, ease: "easeInOut" }}
+          transition={{ delay: 0.3, duration: 1.4, ease: "easeInOut" }}
           className="bg-gradient-to-br from-white to-white/60 bg-clip-text text-center text-5xl font-semibold tracking-tight text-transparent md:text-7xl"
         >
           Vantage
         </motion.h1>
 
-        <h2 className="mt-6 text-2xl md:text-3xl font-medium text-white/90">Who&apos;s working?</h2>
+        <h2 className="mt-16 md:mt-20 text-2xl md:text-3xl font-medium text-white/90">Who&apos;s working?</h2>
 
-        <div className="mt-8 flex flex-col items-center gap-10">
+        <div className="mt-10 flex flex-col items-center gap-10">
           {loading && <p className="text-sm text-white/50">Loading profiles...</p>}
           {error && <p className="text-sm text-red-300">{error}</p>}
 
