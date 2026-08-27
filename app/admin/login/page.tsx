@@ -50,9 +50,7 @@ export default function LoginPage() {
           className="w-full flex flex-col gap-5 rounded-3xl border border-white/10 bg-white p-8 shadow-2xl"
         >
         <div className="flex flex-col items-center gap-3 pb-2">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)] text-white font-bold">
-            V
-          </div>
+          <img src="/logo-mark.png" alt="Vantage" className="h-12 w-12 rounded-2xl object-cover" />
           <div className="text-center">
             <h1 className="text-lg font-semibold text-[var(--navy-900)]">
               Admin Login

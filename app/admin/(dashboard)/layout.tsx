@@ -7,9 +7,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="bg-[var(--navy-900)] border-b border-[var(--navy-700)] px-6 py-5 flex flex-wrap items-center justify-between gap-y-3">
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white font-bold text-sm">
-              V
-            </div>
+            <img src="/logo-mark.png" alt="Vantage" className="h-8 w-8 rounded-lg object-cover" />
             <h1 className="text-lg font-semibold text-white tracking-tight">
               Vantage Admin
             </h1>
