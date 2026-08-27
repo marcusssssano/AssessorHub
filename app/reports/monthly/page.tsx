@@ -16,7 +16,7 @@ export default function ReportsPage() {
         </Link>
         <div className="flex flex-col items-center gap-2 text-center">
           <h2 className="text-2xl font-semibold text-[var(--navy-900)]">
-            Monthly Reports
+            Scan Audit Report
           </h2>
           <p className="text-sm text-slate-500">
             View and download a branch&apos;s monthly activity report

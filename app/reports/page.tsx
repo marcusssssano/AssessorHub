@@ -4,7 +4,7 @@ import PublicHeader from "@/components/PublicHeader";
 const REPORT_LINKS = [
   {
     href: "/reports/monthly",
-    title: "Monthly Reports",
+    title: "Scan Audit Report",
     description: "Exempted Reason Code, Incorrect Scanned Label, and Processed Return Mail activity by branch.",
   },
   {

@@ -8,7 +8,7 @@ export default function AdminReportsPage() {
         <Link href="/admin/reports" className="text-sm text-[var(--accent)] hover:underline w-fit">
           ← Back to Reports
         </Link>
-        <h2 className="text-xl font-semibold">Monthly Reports</h2>
+        <h2 className="text-xl font-semibold">Scan Audit Report</h2>
       </div>
       <ReportsManager />
     </div>
