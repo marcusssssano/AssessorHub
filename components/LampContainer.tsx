@@ -15,14 +15,21 @@ const GROW_DURATION = 2.4;
 /** Total time (seconds) until the lamp has fully settled — used to time the reveal of content beneath it. */
 export const LAMP_SETTLE_TIME = Math.max(RISE_DELAY + RISE_DURATION, GROW_DELAY + GROW_DURATION);
 
+/** Fixed-height beam banner — independent of viewport height, so it never clips content on short screens. */
+const BEAM_HEIGHT = 460;
+
 export default function LampContainer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-[var(--navy-900)]">
+    <div
+      className="relative flex min-h-screen w-full flex-col items-center overflow-hidden"
+      style={{ background: NAVY }}
+    >
       <motion.div
-        initial={{ y: 260, opacity: 0 }}
+        initial={{ y: 120, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: RISE_DELAY, duration: RISE_DURATION, ease: "easeOut" }}
-        className="relative flex w-full flex-1 items-center justify-center"
+        className="relative w-full"
+        style={{ height: BEAM_HEIGHT }}
       >
       <div className="relative flex w-full h-full scale-y-125 items-center justify-center isolate z-0">
         <motion.div
@@ -87,7 +94,9 @@ export default function LampContainer({ children }: { children: React.ReactNode 
       </div>
       </motion.div>
 
-      <div className="relative z-50 flex -translate-y-80 flex-col items-center px-5">{children}</div>
+      <div className="relative z-50 flex w-full flex-1 flex-col items-center px-5 pb-16" style={{ marginTop: -BEAM_HEIGHT * 0.42 }}>
+        {children}
+      </div>
     </div>
   );
 }
