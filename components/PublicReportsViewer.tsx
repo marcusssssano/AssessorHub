@@ -216,7 +216,7 @@ export default function PublicReportsViewer() {
           branch={branch}
           counts={counts}
           description={description}
-          fileNamePrefix="AssessorHub-Report"
+          fileNamePrefix="Vantage-Report"
         />
       )}
 
@@ -233,7 +233,7 @@ export default function PublicReportsViewer() {
                 activityMonth={month}
                 countsByBranch={countsByBranch}
                 description={overallDescription}
-                fileNamePrefix="AssessorHub-Overall-Report"
+                fileNamePrefix="Vantage-Overall-Report"
               />
             )}
           </div>

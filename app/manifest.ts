@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "AssessorHub",
-    short_name: "AssessorHub",
+    name: "Vantage",
+    short_name: "Vantage",
     description: "Searchable directory of county assessor links and note templates",
     start_url: "/",
     display: "standalone",

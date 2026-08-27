@@ -26,12 +26,12 @@ export default function AppleIcon() {
             borderRadius: 24,
             background: "#2f6fed",
             color: "white",
-            fontSize: 72,
+            fontSize: 80,
             fontWeight: 700,
             fontFamily: "sans-serif",
           }}
         >
-          AH
+          V
         </div>
       </div>
     ),

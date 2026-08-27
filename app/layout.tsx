@@ -13,12 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AssessorHub",
+  title: "Vantage",
   description: "Searchable directory of county assessor and parcel viewer links",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "AssessorHub",
+    title: "Vantage",
   },
 };
 

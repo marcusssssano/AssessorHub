@@ -6,7 +6,7 @@ export default function AdminUsersPage() {
       <div>
         <h2 className="text-xl font-semibold">Profiles</h2>
         <p className="text-sm text-slate-500">
-          These are the names shown on the &quot;Who&apos;s using AssessorHub?&quot; screen.
+          These are the names shown on the &quot;Who&apos;s working?&quot; screen.
         </p>
       </div>
       <UsersManager />

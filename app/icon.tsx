@@ -27,12 +27,12 @@ export default function Icon() {
             borderRadius: 64,
             background: "#2f6fed",
             color: "white",
-            fontSize: 200,
+            fontSize: 220,
             fontWeight: 700,
             fontFamily: "sans-serif",
           }}
         >
-          AH
+          V
         </div>
       </div>
     ),

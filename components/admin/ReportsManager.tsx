@@ -441,7 +441,7 @@ export default function ReportsManager() {
         branch={branch}
         counts={counts}
         description={description}
-        fileNamePrefix="AssessorHub-Report"
+        fileNamePrefix="Vantage-Report"
       />
 
       <details className="rounded-2xl border border-slate-200 bg-white shadow-sm" open>
@@ -489,7 +489,7 @@ export default function ReportsManager() {
               activityMonth={month}
               countsByBranch={countsByBranch}
               description={overallDescription}
-              fileNamePrefix="AssessorHub-Overall-Report"
+              fileNamePrefix="Vantage-Overall-Report"
             />
           )}
 

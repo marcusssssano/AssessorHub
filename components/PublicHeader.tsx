@@ -10,10 +10,10 @@ export default function PublicHeader({
     <header className="bg-[var(--navy-900)] border-b border-[var(--navy-700)] px-6 py-5 flex flex-wrap items-center justify-between gap-y-3">
       <div className="flex items-center gap-2.5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white font-bold text-sm">
-          AH
+          V
         </div>
         <h1 className="text-lg font-semibold text-white tracking-tight">
-          AssessorHub
+          Vantage
           <UserBadge />
         </h1>
       </div>

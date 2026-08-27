@@ -8,10 +8,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--accent)] text-white font-bold text-sm">
-              AH
+              V
             </div>
             <h1 className="text-lg font-semibold text-white tracking-tight">
-              AssessorHub Admin
+              Vantage Admin
             </h1>
           </div>
           <nav className="flex flex-wrap items-center gap-1 text-sm">

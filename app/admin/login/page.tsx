@@ -51,13 +51,13 @@ export default function LoginPage() {
         >
         <div className="flex flex-col items-center gap-3 pb-2">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--accent)] text-white font-bold">
-            AH
+            V
           </div>
           <div className="text-center">
             <h1 className="text-lg font-semibold text-[var(--navy-900)]">
               Admin Login
             </h1>
-            <p className="text-sm text-slate-400">Sign in to manage AssessorHub</p>
+            <p className="text-sm text-slate-400">Sign in to manage Vantage</p>
           </div>
         </div>
 
