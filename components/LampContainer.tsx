@@ -7,14 +7,28 @@ const GLOW = "#2f6fed";
 const GLOW_BRIGHT = "#5b8ff5";
 const GLOW_LINE = "#9db9fb";
 
+const RISE_DELAY = 0.1;
+const RISE_DURATION = 2.2;
+const GROW_DELAY = 0.4;
+const GROW_DURATION = 2.4;
+
+/** Total time (seconds) until the lamp has fully settled — used to time the reveal of content beneath it. */
+export const LAMP_SETTLE_TIME = Math.max(RISE_DELAY + RISE_DURATION, GROW_DELAY + GROW_DURATION);
+
 export default function LampContainer({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-[var(--navy-900)]">
-      <div className="relative flex w-full flex-1 scale-y-125 items-center justify-center isolate z-0">
+      <motion.div
+        initial={{ y: 260, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: RISE_DELAY, duration: RISE_DURATION, ease: "easeOut" }}
+        className="relative flex w-full flex-1 items-center justify-center"
+      >
+      <div className="relative flex w-full h-full scale-y-125 items-center justify-center isolate z-0">
         <motion.div
           initial={{ opacity: 0.5, width: "19rem" }}
           animate={{ opacity: 1, width: "38rem" }}
-          transition={{ delay: 0.3, duration: 1.8, ease: "easeInOut" }}
+          transition={{ delay: GROW_DELAY, duration: GROW_DURATION, ease: "easeInOut" }}
           style={{
             backgroundImage: `conic-gradient(from 70deg at center top, ${GLOW}, transparent, transparent)`,
           }}
@@ -32,7 +46,7 @@ export default function LampContainer({ children }: { children: React.ReactNode 
         <motion.div
           initial={{ opacity: 0.5, width: "19rem" }}
           animate={{ opacity: 1, width: "38rem" }}
-          transition={{ delay: 0.3, duration: 1.8, ease: "easeInOut" }}
+          transition={{ delay: GROW_DELAY, duration: GROW_DURATION, ease: "easeInOut" }}
           style={{
             backgroundImage: `conic-gradient(from 290deg at center top, transparent, transparent, ${GLOW})`,
           }}
@@ -57,20 +71,21 @@ export default function LampContainer({ children }: { children: React.ReactNode 
         <motion.div
           initial={{ width: "10rem" }}
           animate={{ width: "20rem" }}
-          transition={{ delay: 0.3, duration: 1.8, ease: "easeInOut" }}
+          transition={{ delay: GROW_DELAY, duration: GROW_DURATION, ease: "easeInOut" }}
           className="absolute inset-auto z-30 h-36 w-64 -translate-y-[6rem] rounded-full blur-2xl"
           style={{ background: GLOW_BRIGHT }}
         />
         <motion.div
           initial={{ width: "19rem" }}
           animate={{ width: "38rem" }}
-          transition={{ delay: 0.3, duration: 1.8, ease: "easeInOut" }}
+          transition={{ delay: GROW_DELAY, duration: GROW_DURATION, ease: "easeInOut" }}
           className="absolute inset-auto z-50 h-0.5 w-[38rem] -translate-y-[7rem]"
           style={{ background: GLOW_LINE }}
         />
 
         <div className="absolute inset-auto z-40 h-44 w-full -translate-y-[12.5rem]" style={{ background: NAVY }} />
       </div>
+      </motion.div>
 
       <div className="relative z-50 flex -translate-y-80 flex-col items-center px-5">{children}</div>
     </div>
