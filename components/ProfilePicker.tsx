@@ -57,9 +57,11 @@ export default function ProfilePicker() {
           initial={{ opacity: 0, y: 220 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 2, ease: "easeOut" }}
-          className="bg-gradient-to-br from-white to-white/60 bg-clip-text text-center text-5xl font-semibold tracking-tight text-transparent md:text-7xl"
+          className="bg-gradient-to-br from-white to-white/60 bg-clip-text text-center text-4xl font-semibold tracking-tight text-transparent md:text-6xl"
         >
-          Vantage
+          Return Mail
+          <br />
+          Workspace
         </motion.h1>
 
         <motion.div
