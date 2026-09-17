@@ -32,6 +32,11 @@ export default function TrackerManager({ trackerType }: { trackerType: TrackerTy
   const [descriptionSaving, setDescriptionSaving] = useState(false);
   const [descriptionSaved, setDescriptionSaved] = useState(false);
 
+  const [footerNote, setFooterNote] = useState("");
+  const [footerNoteLoading, setFooterNoteLoading] = useState(true);
+  const [footerNoteSaving, setFooterNoteSaving] = useState(false);
+  const [footerNoteSaved, setFooterNoteSaved] = useState(false);
+
   async function loadBranches() {
     setLoadingBranches(true);
     const { data, error } = await supabase
@@ -84,21 +89,25 @@ export default function TrackerManager({ trackerType }: { trackerType: TrackerTy
     setLoadingTitle(false);
   }
 
-  async function loadDescription() {
+  async function loadTrackerDescription() {
     setDescriptionLoading(true);
+    setFooterNoteLoading(true);
     const { data, error } = await supabase
       .from("tracker_descriptions")
-      .select("description")
+      .select("description, footer_note")
       .eq("activity_month", month)
       .eq("tracker_type", trackerType)
       .maybeSingle();
 
     if (!error && data) {
-      setDescription(data.description);
+      setDescription(data.description ?? defaultDescription(month));
+      setFooterNote(data.footer_note ?? "");
     } else {
       setDescription(defaultDescription(month));
+      setFooterNote("");
     }
     setDescriptionLoading(false);
+    setFooterNoteLoading(false);
   }
 
   useEffect(() => {
@@ -109,7 +118,7 @@ export default function TrackerManager({ trackerType }: { trackerType: TrackerTy
 
   useEffect(() => {
     loadStatuses();
-    if (trackerType === "regular") loadDescription();
+    loadTrackerDescription();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month]);
 
@@ -139,6 +148,7 @@ export default function TrackerManager({ trackerType }: { trackerType: TrackerTy
         activity_month: month,
         tracker_type: trackerType,
         description: description.trim() || defaultDescription(month),
+        footer_note: footerNote.trim() || null,
       },
       { onConflict: "activity_month,tracker_type" }
     );
@@ -150,6 +160,28 @@ export default function TrackerManager({ trackerType }: { trackerType: TrackerTy
     }
     setDescriptionSaved(true);
     setTimeout(() => setDescriptionSaved(false), 2000);
+  }
+
+  async function handleSaveFooterNote() {
+    setFooterNoteSaving(true);
+    setFooterNoteSaved(false);
+    const { error } = await supabase.from("tracker_descriptions").upsert(
+      {
+        activity_month: month,
+        tracker_type: trackerType,
+        description: trackerType === "regular" ? description.trim() || defaultDescription(month) : null,
+        footer_note: footerNote.trim() || null,
+      },
+      { onConflict: "activity_month,tracker_type" }
+    );
+    setFooterNoteSaving(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setFooterNoteSaved(true);
+    setTimeout(() => setFooterNoteSaved(false), 2000);
   }
 
   async function handleAddBranch(e: React.FormEvent) {
@@ -409,12 +441,40 @@ export default function TrackerManager({ trackerType }: { trackerType: TrackerTy
             </div>
           )}
 
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col gap-3">
+            <label className="text-xs font-medium text-slate-500">Report Footer Note</label>
+            {footerNoteLoading ? (
+              <p className="text-sm text-slate-400">Loading...</p>
+            ) : (
+              <>
+                <textarea
+                  value={footerNote}
+                  onChange={(e) => setFooterNote(e.target.value)}
+                  rows={3}
+                  placeholder="e.g. Please coordinate with your branch lead before the 5th of next month."
+                  className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition-colors focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+                />
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleSaveFooterNote}
+                    disabled={footerNoteSaving}
+                    className="self-start rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors disabled:opacity-50"
+                  >
+                    {footerNoteSaving ? "Saving..." : "Save Footer Note"}
+                  </button>
+                  {footerNoteSaved && <span className="text-sm text-emerald-600">Saved!</span>}
+                </div>
+              </>
+            )}
+          </div>
+
           <TrackerChart
             activityMonth={month}
             branches={branches}
             statuses={statuses}
             title={title}
             description={trackerType === "regular" ? description : undefined}
+            footerNote={footerNote}
             fileNamePrefix={trackerType === "regular" ? "Regular-Return-Mail-Tracker" : "CSSC-Return-Mail-Tracker"}
           />
         </>

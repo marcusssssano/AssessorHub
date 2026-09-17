@@ -61,7 +61,8 @@ export interface TrackerDescription {
   id: string;
   activity_month: string;
   tracker_type: "cssc" | "regular";
-  description: string;
+  description: string | null;
+  footer_note: string | null;
   created_at: string;
   updated_at: string;
 }

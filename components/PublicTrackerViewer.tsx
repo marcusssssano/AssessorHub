@@ -14,6 +14,7 @@ export default function PublicTrackerViewer({ trackerType = "cssc" }: { trackerT
   const [statuses, setStatuses] = useState<Record<string, boolean>>({});
   const [title, setTitle] = useState(TRACKER_DEFAULT_TITLE[trackerType]);
   const [description, setDescription] = useState<string | null>(null);
+  const [footerNote, setFooterNote] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,14 +44,12 @@ export default function PublicTrackerViewer({ trackerType = "cssc" }: { trackerT
           .select("title")
           .eq("id", TRACKER_SETTINGS_ID[trackerType])
           .maybeSingle(),
-        trackerType === "regular"
-          ? supabase
-              .from("tracker_descriptions")
-              .select("description")
-              .eq("activity_month", month)
-              .eq("tracker_type", trackerType)
-              .maybeSingle()
-          : Promise.resolve({ data: null }),
+        supabase
+          .from("tracker_descriptions")
+          .select("description, footer_note")
+          .eq("activity_month", month)
+          .eq("tracker_type", trackerType)
+          .maybeSingle(),
       ]);
 
       if (branchErr || statusErr) {
@@ -61,7 +60,8 @@ export default function PublicTrackerViewer({ trackerType = "cssc" }: { trackerT
         for (const row of statusData ?? []) map[row.branch_id] = row.completed;
         setStatuses(map);
         if (settingsData) setTitle(settingsData.title);
-        setDescription(descriptionData?.description ?? null);
+        setDescription(trackerType === "regular" ? descriptionData?.description ?? null : null);
+        setFooterNote(descriptionData?.footer_note ?? null);
       }
       setLoading(false);
     }
@@ -102,6 +102,7 @@ export default function PublicTrackerViewer({ trackerType = "cssc" }: { trackerT
           statuses={statuses}
           title={title}
           description={trackerType === "regular" ? description : undefined}
+          footerNote={footerNote}
           fileNamePrefix={trackerType === "regular" ? "Regular-Return-Mail-Tracker" : "CSSC-Return-Mail-Tracker"}
         />
       )}

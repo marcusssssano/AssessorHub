@@ -17,6 +17,7 @@ export default function TrackerChart({
   statuses,
   title,
   description,
+  footerNote,
   fileNamePrefix,
 }: {
   activityMonth: string;
@@ -24,6 +25,7 @@ export default function TrackerChart({
   statuses: Record<string, boolean>;
   title?: string;
   description?: string | null;
+  footerNote?: string | null;
   fileNamePrefix?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -44,11 +46,17 @@ export default function TrackerChart({
     const descLines = descText ? wrapLines(ctx, descText, WIDTH - 80) : [];
     const descLineHeight = 20;
 
+    const footerText = footerNote?.trim() || "";
+    ctx.font = "400 13px Arial, sans-serif";
+    const footerLines = footerText ? paragraphLines(ctx, footerText, WIDTH - 80) : [];
+    const footerLineHeight = 19;
+    const footerBlockHeight = footerLines.length > 0 ? 34 + footerLines.length * footerLineHeight + 24 : 0;
+
     const headerHeight =
       40 + titleLines.length * titleLineHeight + (descLines.length > 0 ? descLines.length * descLineHeight + 10 : 0);
     const tableTop = headerHeight + 55;
     const contentHeight = Math.max(branches.length * ROW_HEIGHT + 40, 320);
-    const HEIGHT = headerHeight + contentHeight + 50;
+    const HEIGHT = headerHeight + contentHeight + 50 + footerBlockHeight;
 
     const scale = 2;
     canvas.width = WIDTH * scale;
@@ -207,7 +215,24 @@ export default function TrackerChart({
       ctx.fillStyle = NAVY;
       ctx.fillText(`Not Started ${notStartedPct}%`, cx - 72, legendRow2Y + 7);
     }
-  }, [activityMonth, branches, statuses, title, description]);
+
+    // Footer note
+    if (footerLines.length > 0) {
+      const footerTop = headerHeight + contentHeight + 50;
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(40, footerTop);
+      ctx.lineTo(WIDTH - 40, footerTop);
+      ctx.stroke();
+
+      ctx.font = "400 13px Arial, sans-serif";
+      ctx.fillStyle = SLATE;
+      footerLines.forEach((line, i) => {
+        ctx.fillText(line, 40, footerTop + 24 + i * footerLineHeight);
+      });
+    }
+  }, [activityMonth, branches, statuses, title, description, footerNote]);
 
   function handleDownload() {
     const canvas = canvasRef.current;
@@ -252,5 +277,18 @@ function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number
     }
   }
   if (line) lines.push(line);
+  return lines;
+}
+
+/** Free-form paragraphs: preserves the admin's own line breaks, no auto-bulleting. */
+function paragraphLines(ctx: CanvasRenderingContext2D, raw: string, maxWidth: number): string[] {
+  const paragraphs = raw
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const lines: string[] = [];
+  for (const p of paragraphs) {
+    lines.push(...wrapLines(ctx, p, maxWidth));
+  }
   return lines;
 }
