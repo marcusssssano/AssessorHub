@@ -9,12 +9,9 @@ import {
   WEEKDAY_LABELS,
   weekdayDates,
 } from "@/lib/worklog";
+import { pacificTodayStr } from "@/lib/time";
 import type { WorkLogEntry } from "@/lib/types";
 import WeeklyWorkLogChart from "@/components/WeeklyWorkLogChart";
-
-function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export default function WorkLogManager() {
   const supabase = useMemo(() => createClient(), []);
@@ -26,7 +23,7 @@ export default function WorkLogManager() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [formDate, setFormDate] = useState(todayStr());
+  const [formDate, setFormDate] = useState(pacificTodayStr());
   const [returnMailCount, setReturnMailCount] = useState("0");
   const [completedTasks, setCompletedTasks] = useState("");
   const [ongoingTasks, setOngoingTasks] = useState("");

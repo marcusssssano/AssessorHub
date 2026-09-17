@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { currentMonth, inputValueToMonth, monthToInputValue } from "@/lib/reports";
+import { pacificNow } from "@/lib/time";
 import { TRACKER_DEFAULT_TITLE, TRACKER_SETTINGS_ID, type TrackerType } from "@/lib/tracker";
 import type { TrackerBranch } from "@/lib/types";
 import TrackerChart from "@/components/TrackerChart";
@@ -110,13 +111,13 @@ export default function PublicTrackerViewer({ trackerType = "cssc" }: { trackerT
   );
 }
 
-// A reasonable free-pick window: current month plus the prior 5.
+// A reasonable free-pick window: current month (Pacific time) plus the prior 5.
 function monthOptions(): string[] {
-  const now = new Date();
+  const now = pacificNow();
   const opts: string[] = [];
   for (let i = 0; i < 6; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    opts.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    opts.push(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`);
   }
   return opts;
 }

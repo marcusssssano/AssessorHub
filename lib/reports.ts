@@ -1,3 +1,5 @@
+import { formatPacificDate, pacificCurrentMonth } from "./time";
+
 export const BRANCHES = [
   "AMI",
   "BAP",
@@ -62,7 +64,7 @@ export function buildReferenceDirectoryText(
 ): string {
   const lines: string[] = [];
   lines.push(`Reference File Directory — ${formatMonth(addMonths(activityMonth, 1))}`);
-  lines.push(`Generated ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`);
+  lines.push(`Generated ${formatPacificDate()}`);
   lines.push("");
 
   for (const cat of OVERALL_REPORT_CATEGORIES) {
@@ -98,10 +100,9 @@ export function downloadTextFile(filename: string, content: string) {
   URL.revokeObjectURL(url);
 }
 
-/** Current month as "YYYY-MM-01". */
+/** Current month in Pacific time, as "YYYY-MM-01". */
 export function currentMonth(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  return pacificCurrentMonth();
 }
 
 /** Converts a "YYYY-MM-01" date string to the "YYYY-MM" value an <input type="month"> expects. */

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { computeTimeToFinish, formatDate, rowAccentColor, statusColor, TONE_COLORS } from "@/lib/tasktracker";
+import { pacificTodayStr } from "@/lib/time";
 import type { TaskTrackerEntry } from "@/lib/types";
 
 const WIDTH = 1600;
@@ -303,7 +304,7 @@ export default function TaskTrackerChart({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const link = document.createElement("a");
-    link.download = `${fileNamePrefix ?? "task-tracker"}-${new Date().toISOString().slice(0, 10)}.png`;
+    link.download = `${fileNamePrefix ?? "task-tracker"}-${pacificTodayStr()}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
   }

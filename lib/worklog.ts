@@ -1,12 +1,15 @@
+import { pacificNow } from "./time";
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** "YYYY-Www" for the ISO week containing today, for use as an <input type="week"> default. */
+/** "YYYY-Www" for the ISO week containing today in Pacific time, for use as an <input type="week"> default. */
 export function currentISOWeek(): string {
-  return dateToISOWeek(new Date());
+  return dateToISOWeek(pacificNow());
 }
 
+/** Expects a Date whose UTC fields represent the intended calendar date (see lib/time.ts's pacificNow). */
 export function dateToISOWeek(date: Date): string {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PacificClock from "@/components/PacificClock";
 import SignOutButton from "@/components/admin/SignOutButton";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -51,7 +52,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </Link>
           </nav>
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-3">
+          <PacificClock className="whitespace-nowrap rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60" />
+          <SignOutButton />
+        </div>
       </header>
 
       <main className="flex-1 px-6 py-10 max-w-6xl w-full mx-auto">{children}</main>

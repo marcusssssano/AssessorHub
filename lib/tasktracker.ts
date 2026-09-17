@@ -1,9 +1,11 @@
 import type { TaskStatus } from "./types";
+import { pacificTodayStr, toPacificDateStr } from "./time";
 
 export const STATUSES: TaskStatus[] = ["Not Started", "In Progress", "Completed"];
 
+/** Today's date in Pacific time (the branches this app tracks are California-based). */
 export function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
+  return pacificTodayStr();
 }
 
 function daysBetween(fromDateStr: string, toDateStr: string): number {
@@ -36,7 +38,7 @@ export function computeTimeToFinish(
   completedAt: string | null
 ): TimeToFinish {
   if (status === "Completed" && completedAt) {
-    const completedDateStr = completedAt.slice(0, 10);
+    const completedDateStr = toPacificDateStr(completedAt);
     const diff = daysBetween(deadline, completedDateStr);
     if (diff > 0) return { label: `${diff} day${diff === 1 ? "" : "s"} late`, tone: "completed-late" };
     if (diff < 0) return { label: `${Math.abs(diff)} day${diff === -1 ? "" : "s"} early`, tone: "completed-early" };
