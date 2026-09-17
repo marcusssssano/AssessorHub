@@ -8,6 +8,11 @@ const REPORT_LINKS = [
     description: "Exempted Reason Code, Incorrect Scanned Label, and Processed Return Mail activity by branch.",
   },
   {
+    href: "/admin/weeklyscan",
+    title: "Weekly Scan Return Mail Tracker",
+    description: "Per-branch weekly scan checklist (Week 1-5) with a note for each branch.",
+  },
+  {
     href: "/admin/worklog",
     title: "Daily Work Log",
     description: "Daily return mail counts and task notes, rolled up into a weekly report.",

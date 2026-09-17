@@ -105,3 +105,25 @@ export interface TaskTrackerEntry {
   created_at: string;
   updated_at: string;
 }
+
+export interface WeeklyScanBranch {
+  id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WeeklyScanEntry {
+  id: string;
+  activity_month: string;
+  branch_id: string;
+  week1: boolean;
+  week2: boolean;
+  week3: boolean;
+  week4: boolean;
+  week5: boolean;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+}

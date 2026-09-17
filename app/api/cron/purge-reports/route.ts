@@ -37,5 +37,10 @@ export async function GET() {
     return NextResponse.json({ ok: false, error: trackerDescError.message }, { status: 500 });
   }
 
+  const { error: weeklyScanError } = await supabase.rpc("purge_old_weekly_scan_entries");
+  if (weeklyScanError) {
+    return NextResponse.json({ ok: false, error: weeklyScanError.message }, { status: 500 });
+  }
+
   return NextResponse.json({ ok: true, ranAt: new Date().toISOString() });
 }
