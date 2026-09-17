@@ -18,7 +18,8 @@ const SLATE = "#64748b";
 const BORDER = "#e2e8f0";
 const ROW_ALT = "#f8fafc";
 const DONE = "#16a34a";
-const NOT_DONE = "#cbd5e1";
+const NOT_DONE = "#94a3b8";
+const NOT_DONE_FILL = "#94a3b8";
 
 const LINE_HEIGHT = 20;
 const BODY_FONT = "400 14px Arial, sans-serif";
@@ -180,23 +181,28 @@ export default function WeeklyScanChart({
 
         ctx.beginPath();
         ctx.arc(cx, cy, 9, 0, 2 * Math.PI);
-        ctx.fillStyle = done ? DONE : "#ffffff";
+        ctx.fillStyle = done ? DONE : NOT_DONE_FILL;
         ctx.fill();
         ctx.lineWidth = 1.5;
         ctx.strokeStyle = done ? DONE : NOT_DONE;
         ctx.stroke();
 
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
         if (done) {
-          ctx.strokeStyle = "#ffffff";
-          ctx.lineWidth = 2;
-          ctx.lineCap = "round";
-          ctx.lineJoin = "round";
-          ctx.beginPath();
           ctx.moveTo(cx - 4, cy);
           ctx.lineTo(cx - 1.3, cy + 3.2);
           ctx.lineTo(cx + 4.5, cy - 4);
-          ctx.stroke();
+        } else {
+          ctx.moveTo(cx - 3.5, cy - 3.5);
+          ctx.lineTo(cx + 3.5, cy + 3.5);
+          ctx.moveTo(cx + 3.5, cy - 3.5);
+          ctx.lineTo(cx - 3.5, cy + 3.5);
         }
+        ctx.stroke();
       });
 
       ctx.font = BODY_FONT;

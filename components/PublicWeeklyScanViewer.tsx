@@ -110,12 +110,16 @@ export default function PublicWeeklyScanViewer() {
                       <td key={wk} className="px-3 py-3 text-center">
                         <span
                           className={`inline-flex h-4 w-4 items-center justify-center rounded-full border ${
-                            row[wk] ? "bg-emerald-500 border-emerald-500" : "border-slate-300"
+                            row[wk] ? "bg-emerald-500 border-emerald-500" : "bg-slate-400 border-slate-400"
                           }`}
                         >
-                          {row[wk] && (
+                          {row[wk] ? (
                             <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                          ) : (
+                            <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                             </svg>
                           )}
                         </span>
