@@ -72,7 +72,7 @@ export default function PublicTrackerViewer({ trackerType = "cssc" }: { trackerT
     <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
       <div className="flex justify-center">
         <div className="flex flex-col gap-1.5 w-56">
-          <label className="text-xs font-medium text-slate-500">Month</label>
+          <label className="text-xs font-medium text-slate-500">Report Month</label>
           <select
             value={monthToInputValue(month)}
             onChange={(e) => setMonth(inputValueToMonth(e.target.value))}

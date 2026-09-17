@@ -249,7 +249,7 @@ export default function TrackerManager({ trackerType }: { trackerType: TrackerTy
         </div>
 
         <div className="flex flex-col gap-1.5 w-56">
-          <label className="text-xs font-medium text-slate-500">Activity Month</label>
+          <label className="text-xs font-medium text-slate-500">Report Month</label>
           <input
             type="month"
             value={monthToInputValue(month)}
