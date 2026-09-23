@@ -55,10 +55,10 @@ export default function RmpSubtopicNotesModal({
       onClick={onClose}
     >
       <div
-        className="flex w-full max-w-2xl flex-col rounded-3xl bg-white p-6 shadow-2xl"
+        className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex shrink-0 items-start justify-between gap-4">
           <h3 className="text-lg font-semibold text-[var(--navy-900)] break-words">{subtopic.name}</h3>
           <button
             onClick={onClose}
@@ -79,12 +79,12 @@ export default function RmpSubtopicNotesModal({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Write anything you need for this subtopic..."
               rows={14}
-              className="mt-4 w-full flex-1 resize-y whitespace-pre-wrap break-words rounded-xl border border-slate-200 px-4 py-3 text-sm leading-relaxed outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+              className="mt-4 min-h-0 w-full flex-1 resize-none overflow-y-auto whitespace-pre-wrap break-words rounded-xl border border-slate-200 px-4 py-3 text-sm leading-relaxed outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
             />
 
-            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+            {error && <p className="mt-2 shrink-0 text-sm text-red-600">{error}</p>}
 
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-4 flex shrink-0 items-center gap-2">
               <button
                 onClick={handleSave}
                 disabled={saving}
@@ -102,11 +102,11 @@ export default function RmpSubtopicNotesModal({
           </>
         ) : (
           <>
-            <div className="mt-4 w-full flex-1 overflow-y-auto whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-[var(--navy-900)]" style={{ minHeight: "18rem" }}>
+            <div className="mt-4 min-h-[18rem] w-full flex-1 overflow-y-auto whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-[var(--navy-900)]">
               {subtopic.notes ? subtopic.notes : <span className="text-slate-400">No notes yet.</span>}
             </div>
 
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-4 flex shrink-0 items-center gap-2">
               <button
                 onClick={handleStartEdit}
                 className="rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors"
