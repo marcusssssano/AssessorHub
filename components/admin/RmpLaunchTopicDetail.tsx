@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { RmpSubtopic, RmpTopic } from "@/lib/types";
+import RmpSubtopicNotesModal from "@/components/admin/RmpSubtopicNotesModal";
 
 const MAX_SUBTOPICS = 10;
 
@@ -19,9 +20,7 @@ export default function RmpLaunchTopicDetail({ topicId }: { topicId: string }) {
   const [newName, setNewName] = useState("");
   const [adding, setAdding] = useState(false);
 
-  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
-  const [savingNoteFor, setSavingNoteFor] = useState<string | null>(null);
-  const [noteSavedFor, setNoteSavedFor] = useState<string | null>(null);
+  const [notesModalFor, setNotesModalFor] = useState<RmpSubtopic | null>(null);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -47,15 +46,7 @@ export default function RmpLaunchTopicDetail({ topicId }: { topicId: string }) {
       setNotFound(true);
     } else {
       setTopic(topicData);
-      const list = (subtopicData ?? []) as RmpSubtopic[];
-      setSubtopics(list);
-      setNoteDrafts((prev) => {
-        const next = { ...prev };
-        for (const s of list) {
-          if (next[s.id] === undefined) next[s.id] = s.notes ?? "";
-        }
-        return next;
-      });
+      setSubtopics((subtopicData ?? []) as RmpSubtopic[]);
     }
     setLoading(false);
   }
@@ -110,26 +101,17 @@ export default function RmpLaunchTopicDetail({ topicId }: { topicId: string }) {
     }
   }
 
-  function handleNoteChange(id: string, value: string) {
-    setNoteDrafts((prev) => ({ ...prev, [id]: value }));
-  }
-
-  async function handleSaveNote(id: string) {
-    setSavingNoteFor(id);
-    setNoteSavedFor(null);
-    const value = noteDrafts[id] ?? "";
+  async function handleSaveNotes(id: string, value: string): Promise<boolean> {
     const { error } = await supabase
       .from("rmp_subtopics")
       .update({ notes: value.trim() || null })
       .eq("id", id);
-    setSavingNoteFor(null);
     if (error) {
       setError(error.message);
-      return;
+      return false;
     }
     setSubtopics((prev) => prev.map((s) => (s.id === id ? { ...s, notes: value.trim() || null } : s)));
-    setNoteSavedFor(id);
-    setTimeout(() => setNoteSavedFor(null), 2000);
+    return true;
   }
 
   function startEdit(subtopic: RmpSubtopic) {
@@ -304,31 +286,30 @@ export default function RmpLaunchTopicDetail({ topicId }: { topicId: string }) {
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1.5 pl-7">
-                    <label className="text-xs font-medium text-slate-500">Notes</label>
-                    <textarea
-                      value={noteDrafts[s.id] ?? ""}
-                      onChange={(e) => handleNoteChange(s.id, e.target.value)}
-                      placeholder="Write anything you need for this subtopic..."
-                      rows={3}
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
-                    />
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleSaveNote(s.id)}
-                        disabled={savingNoteFor === s.id}
-                        className="rounded-full bg-[var(--navy-900)] px-3 py-1.5 text-xs text-white font-medium hover:bg-[var(--navy-800)] transition-colors disabled:opacity-50 w-fit"
-                      >
-                        {savingNoteFor === s.id ? "Saving..." : "Save Notes"}
-                      </button>
-                      {noteSavedFor === s.id && <span className="text-xs text-emerald-600">Saved!</span>}
-                    </div>
+                  <div className="pl-7">
+                    <button
+                      onClick={() => setNotesModalFor(s)}
+                      className="flex w-full flex-col gap-1 rounded-lg border border-slate-200 px-3 py-2 text-left text-sm text-slate-500 hover:border-[var(--accent)] hover:bg-slate-50 transition-colors"
+                    >
+                      <span className="text-xs font-medium text-slate-400">Notes</span>
+                      <span className="line-clamp-2 break-words">
+                        {s.notes ? s.notes : "No notes yet — click to add."}
+                      </span>
+                    </button>
                   </div>
                 </li>
               ))}
             </ul>
           )}
         </>
+      )}
+
+      {notesModalFor && (
+        <RmpSubtopicNotesModal
+          subtopic={notesModalFor}
+          onSave={(value) => handleSaveNotes(notesModalFor.id, value)}
+          onClose={() => setNotesModalFor(null)}
+        />
       )}
     </div>
   );
