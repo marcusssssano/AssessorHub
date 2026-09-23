@@ -127,3 +127,31 @@ export interface WeeklyScanEntry {
   created_at: string;
   updated_at: string;
 }
+
+export interface RmpTopic {
+  id: string;
+  title: string;
+  description: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RmpSubtopic {
+  id: string;
+  topic_id: string;
+  name: string;
+  notes: string | null;
+  done: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RmpMaterial {
+  id: string;
+  title: string;
+  file_path: string;
+  created_at: string;
+  updated_at: string;
+}

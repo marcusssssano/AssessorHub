@@ -45,6 +45,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Users
             </Link>
             <Link
+              href="/admin/rmp-launch"
+              className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              RMP Launch
+            </Link>
+            <Link
               href="/links"
               className="rounded-full px-4 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
             >
