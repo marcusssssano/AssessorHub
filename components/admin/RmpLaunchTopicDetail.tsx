@@ -110,7 +110,9 @@ export default function RmpLaunchTopicDetail({ topicId }: { topicId: string }) {
       setError(error.message);
       return false;
     }
-    setSubtopics((prev) => prev.map((s) => (s.id === id ? { ...s, notes: value.trim() || null } : s)));
+    const updated = value.trim() || null;
+    setSubtopics((prev) => prev.map((s) => (s.id === id ? { ...s, notes: updated } : s)));
+    setNotesModalFor((prev) => (prev && prev.id === id ? { ...prev, notes: updated } : prev));
     return true;
   }
 

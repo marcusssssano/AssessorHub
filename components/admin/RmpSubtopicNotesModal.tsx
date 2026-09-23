@@ -12,6 +12,7 @@ export default function RmpSubtopicNotesModal({
   onSave: (notes: string) => Promise<boolean>;
   onClose: () => void;
 }) {
+  const [editing, setEditing] = useState(false);
   const [notes, setNotes] = useState(subtopic.notes ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,13 +25,25 @@ export default function RmpSubtopicNotesModal({
     return () => window.removeEventListener("keydown", handleKey);
   }, [onClose]);
 
+  function handleStartEdit() {
+    setNotes(subtopic.notes ?? "");
+    setError(null);
+    setEditing(true);
+  }
+
+  function handleCancelEdit() {
+    setNotes(subtopic.notes ?? "");
+    setError(null);
+    setEditing(false);
+  }
+
   async function handleSave() {
     setSaving(true);
     setError(null);
     const ok = await onSave(notes);
     setSaving(false);
     if (ok) {
-      onClose();
+      setEditing(false);
     } else {
       setError("Something went wrong saving your notes.");
     }
@@ -58,32 +71,57 @@ export default function RmpSubtopicNotesModal({
           </button>
         </div>
 
-        <textarea
-          autoFocus
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Write anything you need for this subtopic..."
-          rows={14}
-          className="mt-4 w-full flex-1 resize-y whitespace-pre-wrap break-words rounded-xl border border-slate-200 px-4 py-3 text-sm leading-relaxed outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
-        />
+        {editing ? (
+          <>
+            <textarea
+              autoFocus
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Write anything you need for this subtopic..."
+              rows={14}
+              className="mt-4 w-full flex-1 resize-y whitespace-pre-wrap break-words rounded-xl border border-slate-200 px-4 py-3 text-sm leading-relaxed outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
+            />
 
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+            {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
-        <div className="mt-4 flex items-center gap-2">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
-          <button
-            onClick={onClose}
-            className="rounded-full px-5 py-2.5 text-sm text-slate-500 hover:bg-slate-100 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
+            <div className="mt-4 flex items-center gap-2">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+              <button
+                onClick={handleCancelEdit}
+                className="rounded-full px-5 py-2.5 text-sm text-slate-500 hover:bg-slate-100 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="mt-4 w-full flex-1 overflow-y-auto whitespace-pre-wrap break-words rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-[var(--navy-900)]" style={{ minHeight: "18rem" }}>
+              {subtopic.notes ? subtopic.notes : <span className="text-slate-400">No notes yet.</span>}
+            </div>
+
+            <div className="mt-4 flex items-center gap-2">
+              <button
+                onClick={handleStartEdit}
+                className="rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors"
+              >
+                Edit
+              </button>
+              <button
+                onClick={onClose}
+                className="rounded-full px-5 py-2.5 text-sm text-slate-500 hover:bg-slate-100 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
