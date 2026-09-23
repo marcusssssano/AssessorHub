@@ -205,7 +205,12 @@ export default function RmpLaunchManager() {
             const p = progress[topic.id] ?? { total: 0, done: 0 };
             const isDone = p.total > 0 && p.done === p.total;
             return (
-              <li key={topic.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <li
+                key={topic.id}
+                className={`rounded-2xl border p-5 shadow-sm transition-colors ${
+                  isDone ? "border-emerald-300 bg-emerald-50" : "border-slate-200 bg-white"
+                }`}
+              >
                 {editingId === topic.id ? (
                   <div className="flex flex-col gap-3">
                     <input

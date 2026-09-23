@@ -7,10 +7,12 @@ export default function RmpSubtopicNotesModal({
   subtopic,
   onSave,
   onClose,
+  readOnly = false,
 }: {
   subtopic: RmpSubtopic;
-  onSave: (notes: string) => Promise<boolean>;
+  onSave?: (notes: string) => Promise<boolean>;
   onClose: () => void;
+  readOnly?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [notes, setNotes] = useState(subtopic.notes ?? "");
@@ -38,6 +40,7 @@ export default function RmpSubtopicNotesModal({
   }
 
   async function handleSave() {
+    if (!onSave) return;
     setSaving(true);
     setError(null);
     const ok = await onSave(notes);
@@ -71,7 +74,7 @@ export default function RmpSubtopicNotesModal({
           </button>
         </div>
 
-        {editing ? (
+        {editing && !readOnly ? (
           <>
             <textarea
               autoFocus
@@ -107,12 +110,14 @@ export default function RmpSubtopicNotesModal({
             </div>
 
             <div className="mt-4 flex shrink-0 items-center gap-2">
-              <button
-                onClick={handleStartEdit}
-                className="rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors"
-              >
-                Edit
-              </button>
+              {!readOnly && (
+                <button
+                  onClick={handleStartEdit}
+                  className="rounded-full bg-[var(--navy-900)] px-5 py-2.5 text-sm text-white font-medium hover:bg-[var(--navy-800)] transition-colors"
+                >
+                  Edit
+                </button>
+              )}
               <button
                 onClick={onClose}
                 className="rounded-full px-5 py-2.5 text-sm text-slate-500 hover:bg-slate-100 transition-colors"

@@ -5,7 +5,7 @@ import UserBadge from "./UserBadge";
 export default function PublicHeader({
   active,
 }: {
-  active: "links" | "templates" | "reports";
+  active: "links" | "templates" | "reports" | "rmp-launch";
 }) {
   return (
     <header className="bg-[var(--navy-900)] border-b border-[var(--navy-700)] px-6 py-5 flex flex-wrap items-center justify-between gap-y-3">
@@ -46,6 +46,16 @@ export default function PublicHeader({
           }`}
         >
           Reports
+        </Link>
+        <Link
+          href="/rmp-launch"
+          className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
+            active === "rmp-launch"
+              ? "border-white/40 text-white bg-white/10"
+              : "border-white/20 text-white/80 hover:text-white hover:border-white/40"
+          }`}
+        >
+          RMP Launch
         </Link>
         <Link
           href="/admin"

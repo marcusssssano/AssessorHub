@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { RmpSubtopic, RmpTopic } from "@/lib/types";
-import RmpSubtopicNotesModal from "@/components/admin/RmpSubtopicNotesModal";
+import RmpSubtopicNotesModal from "@/components/RmpSubtopicNotesModal";
 
 const MAX_SUBTOPICS = 10;
 
